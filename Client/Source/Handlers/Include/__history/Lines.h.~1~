@@ -1,0 +1,48 @@
+//-- ******************************************* --//
+//-- ****************** Lines ****************** --//
+//-- ******************************************* --//
+
+#ifndef LINESH
+#define LINESH
+
+//-- ОНДЙКЧВЕМХЕ ХДЕМРХТХЙЮРНПНБ ДЮММШУ --//
+#include <MapsID.h>
+
+
+//-- ОНДЙКЧВЕМХЕ JSON --//
+#include <System.JSON.hpp>
+
+#include "MainForm_Delta.h"
+#include "DebugForm_Delta.h"
+
+namespace HandlersNS
+{
+
+
+	//-- тсмйжхъ-напюанрвхй онксвемхъ кхмхи --//
+	void getLines(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй пегскэрюрю днаюбкемхъ кхмхх --//
+	void CheckAddLine(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй пегскэрюрю хглемемхъ кхмхх --//
+	void CheckEditLine(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй пегскэрюрю сдюкемхъ кхмхх --//
+	void CheckDeleteLine(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй хглемемхъ кхмхх --//
+	void editLine(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй днаюбкемхъ кхмхх --//
+	void addLine(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй сдюкемхъ кхмхх --//
+	void deleteLine(TJSONObject *json_object_parse);
+
+
+}
+
+
+
+#endif

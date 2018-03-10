@@ -1,0 +1,89 @@
+  //-----------------------------------------------------------//
+  //-------------------------- ТИПЫ ---------------------------//
+  //---------------------------(H)-----------------------------//
+
+#ifndef CONFIGH
+#define CONFIGH
+
+//-- подключение типов сортировки --//
+#include "SortTypes.h"
+
+struct SConfig
+{
+	//-- параметр размера главной формы --//
+	unsigned int MainFormWidth = 1000;
+	unsigned int MainFormHeight = 600;
+
+	//-- параметр минимизации программы --//
+	bool TrayMinimize = false;
+
+	//-- параметр получения уведомлений --//
+	bool NotificationsHint = false;
+
+	//-- параметр темы --//
+	bool Theme = true;
+
+	//-- параметр последнего обновления данных --//
+	unsigned int LastCollectedDD = 00;
+
+	unsigned int LastCollectedMM = 00;
+
+	unsigned int LastCollectedYY = 00;
+
+	unsigned int LastCollectedHH = 00;
+
+	unsigned int LastCollectedNN = 00;
+
+	unsigned int LastCollectedSS = 00;
+
+	unsigned int LastTimeOnCollect = 0;
+
+	//-- хост сервера --//
+	UnicodeString HostServer = "127.0.0.1";
+
+	//-- порт сервера --//
+	unsigned int PortServer = 81;
+
+	//-- логин для авторизации на сервере --//
+	UnicodeString LoginServer;
+
+	//-- пароль для авторизации на сервере --//
+	UnicodeString PasswordServer;
+
+	//-- параметры выбраных сортировок --//
+	unsigned int SortSources = eID;
+	bool SortSourcesInd = true;
+
+	unsigned int SortCurrencys = eID;
+	bool SortCurrencysInd = true;
+
+	unsigned int SortLines = eID;
+	bool SortLinesInd = true;
+
+	unsigned int SortCorrections = eID;
+	bool SortCorrectionsInd = true;
+
+	unsigned int SortArbitrations = eFACTOR;
+	bool SortArbitrationsInd = true;
+
+	//-- параметры коэффициентов ширины столбцов --//
+	float SourcesCol_0 = 0.05;
+	float SourcesCol_1 = 0.15;
+	float SourcesCol_2 = 0.20;
+	float SourcesCol_3 = 0.20;
+	float SourcesCol_4 = 0.10;
+	float SourcesCol_5 = 0.10;
+	float SourcesCol_6 = 0.20;
+
+	float CurrencysCol_0 = 0.05;
+	float CurrencysCol_1 = 0.15;
+	float CurrencysCol_2 = 0.10;
+	float CurrencysCol_3 = 0.08;
+	float CurrencysCol_4 = 0.10;
+	float CurrencysCol_5 = 0.06;
+	float CurrencysCol_6 = 0.10;
+	float CurrencysCol_7 = 0.35;
+
+};
+
+#endif

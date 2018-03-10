@@ -1,0 +1,285 @@
+//-- ******************************************* --//
+//-- ***************** Sources ***************** --//
+//-- ******************************************* --//
+
+#include <vcl.h>
+
+//-- подключение заголовочного файла --//
+#include "Sources.h"
+
+
+
+namespace HandlersNS
+{
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ѕќЋ”„≈Ќ»я »—“ќ„Ќ» ќ¬ --//
+	void getSources(TJSONObject *json_object_parse)
+	{
+
+		//-- обьекты дл€ работы с JSON --//
+		TJSONObject *json_object;
+		TJSONArray 	*json_array;
+
+		//-- получение массива с источниками --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+
+			if( json_object->Get("sources") )
+			{
+				json_array =  dynamic_cast<TJSONArray*>( json_object->Get("sources")->JsonValue );
+
+				//-- очистка идентификаторов --//
+				MainForm->engine->Data()->map_sources.clear();
+
+				//-- очистка таблиц --//
+				MainForm->ClearStringGrid( MainForm->Sources_StringGrid );
+
+
+				//-- парсинг массива с источниками --//
+				for(int i=0; i != json_array->Size(); i++)
+				{
+					json_object = dynamic_cast<TJSONObject*>( json_array->Get(i) );
+
+					SSource sources;
+
+					//-- добавление об€зательных значений в таблицу --//
+					sources.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+					sources.url = MainForm->Decoder->DecodeString( json_object->GetValue("url")->Value(), IndyTextEncoding_UTF8() );
+
+					sources.dataurl = MainForm->Decoder->DecodeString( json_object->GetValue("dataurl")->Value(), IndyTextEncoding_UTF8() );
+
+					sources.getter = MainForm->Decoder->DecodeString( json_object->GetValue("getter")->Value(), IndyTextEncoding_UTF8() );
+
+					sources.enabled = json_object->GetValue("enabled")->Value().ToInt();
+
+					//-- добавление необ€зательных значений в таблицу --//
+					if( json_object->GetValue("notes") )
+						sources.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+					//-- запись идентификатора --//
+					MainForm->engine->Data()->map_sources.insert( std::make_pair( json_object->GetValue("id")->Value().ToInt(), sources ));
+				}
+
+
+				//-- обновление таблицы --//
+				MainForm->UpdateSources(MainForm->Sources_StringGrid->Row, true);
+			}
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј ƒќЅј¬Ћ≈Ќ»я »—“ќ„Ќ» ј --//
+	void CheckAddSource(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Adding successful.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Source with that name already exists.");
+			}
+			else
+			{
+				if(json_object->GetValue("result")->Value().ToInt() == 2)
+				{
+					ShowMessage("Incorrect value in \"Getter\".");
+				}
+			}
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј »«ћ≈Ќ≈Ќ»я »—“ќ„Ќ» ј --//
+	void CheckEditSource(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Changes successful.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Source with that name already exists.");
+			}
+			else
+			{
+				if(json_object->GetValue("result")->Value().ToInt() == 2)
+				{
+					ShowMessage("Incorrect value in \"Getter\".");
+				}
+				else
+				{
+					if(json_object->GetValue("result")->Value().ToInt() == 3)
+					{
+						ShowMessage("Wrong ID.");
+					}
+				}
+			}
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј ”ƒјЋ≈Ќ»я »—“ќ„Ќ» ј --//
+	void CheckDeleteSource(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Removal completed successfully.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Wrong value of the ID field.");
+			}
+		}
+	}
+
+
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  »«ћ≈Ќ≈Ќ»я »—“ќ„Ќ» ј --//
+	void editSource(TJSONObject *json_object_parse)
+	{
+        //-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение изменнЄнных параметров источника --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			//-- поиск измен€емого элемента по ID --//
+			MSource::iterator iterator_source = MainForm->engine->Data()->map_sources.find( json_object->GetValue("id")->Value().ToInt() );
+
+			//-- изменение данных --//
+			if( json_object->GetValue("name") )
+				iterator_source->second.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("getter") )
+				iterator_source->second.getter = MainForm->Decoder->DecodeString( json_object->GetValue("getter")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("url") )
+				iterator_source->second.url = MainForm->Decoder->DecodeString( json_object->GetValue("url")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("enabled") )
+				iterator_source->second.enabled = json_object->GetValue("enabled")->Value();
+
+			if( json_object->GetValue("dataurl") )
+				iterator_source->second.dataurl = MainForm->Decoder->DecodeString( json_object->GetValue("dataurl")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("notes") )
+				iterator_source->second.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+			//-- обновление таблицы --//
+			MainForm->UpdateSources(MainForm->Sources_StringGrid->Row, true);
+		}
+	}
+
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ƒќЅј¬Ћ≈Ќ»я »—“ќ„Ќ» ј --//
+	void addSource(TJSONObject *json_object_parse)
+	{
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение добавленного источника --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			SSource sources;
+
+			//-- добавление об€зательных значений в таблицу --//
+			sources.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+			sources.getter = MainForm->Decoder->DecodeString( json_object->GetValue("getter")->Value(), IndyTextEncoding_UTF8() );
+
+
+			//-- добавление необ€зательных значений в таблицу --//
+			if( json_object->GetValue("url") )
+				sources.url = MainForm->Decoder->DecodeString( json_object->GetValue("url")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("enabled") )
+				sources.enabled = json_object->GetValue("enabled")->Value().ToInt();
+
+			if( json_object->GetValue("dataurl") )
+				sources.dataurl = MainForm->Decoder->DecodeString( json_object->GetValue("dataurl")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("notes") )
+				sources.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+			//-- запись идентификатора --//
+			MainForm->engine->Data()->map_sources.insert( std::make_pair( json_object->GetValue("id")->Value().ToInt(), sources ));
+
+
+			//-- обновление таблицы --//
+			MainForm->UpdateSources(MainForm->Sources_StringGrid->Row, true);
+		}
+	}
+
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ”ƒјЋ≈Ќ»я »—“ќ„Ќ» ј --//
+	void deleteSource(TJSONObject *json_object_parse)
+	{
+        //-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			//-- удаление источника --//
+			MainForm->engine->Data()->map_sources.erase( MainForm->engine->Data()->map_sources.find(json_object->GetValue("id")->Value().ToInt()) );
+
+            //-- обновление таблицы --//
+			MainForm->UpdateSources(MainForm->Sources_StringGrid->Row - 1, true);
+        }
+	}
+
+}
+
+

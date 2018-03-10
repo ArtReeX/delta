@@ -1,0 +1,51 @@
+//---------------------------------------------------------------------------
+
+#ifndef AddForm_Lines_DeltaH
+#define AddForm_Lines_DeltaH
+//---------------------------------------------------------------------------
+#include <System.Classes.hpp>
+#include <Vcl.Controls.hpp>
+#include <Vcl.StdCtrls.hpp>
+#include <Vcl.Forms.hpp>
+#include <Vcl.CheckLst.hpp>
+
+#include "MainForm_Delta.h"
+
+//---------------------------------------------------------------------------
+class TAddFormLines : public TForm
+{
+__published:
+
+	TStaticText *NameStatic;
+	TEdit *NameEdit;
+	TCheckListBox *CurrencysCheckList;
+	TStaticText *SourcesStatic;
+	TStaticText *CurrencysStatic;
+	TCheckListBox *SourcesCheckList;
+	TButton *AddButton;
+	TStaticText *EnabledStatic;
+	TCheckBox *EnabledCheck;
+	TStaticText *NotesStatic;
+	TMemo *NotesMemo;
+	TCheckBox *AllSourcesCheck;
+	TCheckBox *AllCurrencysCheck;
+	TCheckListBox *BasesCheckList;
+	TStaticText *BasesStatic;
+	TCheckBox *AllBasesCheck;
+	void __fastcall FormShow(TObject *Sender);
+	void __fastcall AddButton_OneClick(TObject *Sender);
+	void __fastcall AllSourcesCheck_OneClick(TObject *Sender);
+	void __fastcall AllCurrencysCheck_OneClick(TObject *Sender);
+
+private:
+
+
+public:
+
+	__fastcall TAddFormLines(TComponent* Owner);
+
+};
+//---------------------------------------------------------------------------
+extern PACKAGE TAddFormLines *AddFormLines;
+//---------------------------------------------------------------------------
+#endif

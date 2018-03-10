@@ -1,0 +1,34 @@
+//-----------------------------------------------------------//
+//----------------- ИДЕНТИФИКАТОРЫ ДАННЫХ -------------------//
+//---------------------------(H)-----------------------------//
+
+#ifndef SORTTYPESH
+#define SORTTYPESH
+
+
+//-- структура для источников --//
+enum ESortTypes
+{
+	name,
+	url,
+	dataurl,
+	getter,
+	enabled,
+	notes,
+	shortn,
+	fee,
+	minSum,
+	base,
+	currOut,
+	currIn,
+	idSource,
+	rate,
+	realRate,
+	amount,
+	factor,
+    line
+};
+
+
+
+#endif

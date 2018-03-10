@@ -1,0 +1,119 @@
+//--************************************************************************--//
+
+#include <System.hpp>
+
+#pragma hdrstop
+#pragma package(smart_init)
+
+#include "TTCPReadSocketThread.h"
+
+#include <vcl.h>
+
+//--************************************************************************--//
+
+__fastcall TTCPReadSocketThread::TTCPReadSocketThread(TIdTCPClient *TCPClient, MHandlers *Handlers, UnicodeString Key, TStringList *Logs)
+	: TThread(false),
+	  tcp_client(TCPClient),
+	  handlers(Handlers),
+	  name_search(Key),
+	  logs(Logs)
+{
+};
+
+//--************************************************************************--//
+
+void __fastcall TTCPReadSocketThread::Execute()
+{
+	//-- ОБРАБОТКА ДАННЫХ ПРИ ПОЛУЧЕНИИ СООБЩЕНИЯ ОТ СЕРВЕРА --//
+	for(;!Terminated;)
+	{
+		try
+		{
+			//-- запоминание строки полученной от сервера --//
+			UnicodeString message_from_server = tcp_client->Socket->ReadLn(message_from_server, tcp_client->ReadTimeout, 10000000);
+
+
+			//-- проверка на получение сообщения от сервера --//
+			if(!message_from_server.IsEmpty())
+			{
+				//-- ПАРСИНГ ОТВЕТА ОТ СЕРВЕРА --//
+				json_object_parse.reset( dynamic_cast<TJSONObject*>(TJSONObject::ParseJSONValue(message_from_server)) );
+
+
+				//-- ЗАПИСЬ В ЛОГ ФАЙЛ --//
+
+                //-- очистка логов, если требуется --//
+				if(logs->Count >= 5000)
+					logs->Clear();
+
+				if(json_object_parse.get())
+				{
+					//-- запись в лог файл --//
+					logs->Add( "Server: " + json_object_parse.get()->ToJSON() );
+					logs->Add("----------");
+				}
+				else
+				{
+					//-- запись ошибки входящих данных --//
+					logs->Add( "Server: Error JSON data." );
+					logs->Add("----------");
+
+                    return;
+				}
+
+				//-- ОПРЕДЕЛЕНИЕ ТИПА СООБЩЕНИЯ --//
+				UnicodeString type_method;
+
+				if(json_object_parse.get()->GetValue( name_search ))
+				{
+					type_method = json_object_parse.get()->GetValue( name_search )->Value();
+
+					//-- ВЫЗОВ ОБРАБОТЧИКА СОБЫТИЯ --//
+					//-- поиск элемента --//
+					MHandlers::iterator handlers_it = handlers->find( type_method );
+
+					//-- вызов элемента, если такой есть --//
+					if (handlers_it != handlers->end())
+					{
+						//-- получение обработчика и передаваемого объекта --//
+						handler = handlers_it->second;
+						json_object = json_object_parse.get();
+
+						//-- выполняем синхронизацию --//
+						Synchronize(CallHandler);
+					}
+					else
+					{
+						//-- ищем стандартный обработчик --//
+						MHandlers::iterator handlers_it = handlers->find( "DefaultHandlerStapLIB" );
+
+						//-- если он найден --//
+						if (handlers_it != handlers->end())
+						{
+							//-- получение стандартного обработчика и передаваемого объекта --//
+							handler = handlers_it->second;
+							json_object = json_object_parse.get();
+
+							//-- выполняем синхронизацию --//
+							Synchronize(CallHandler);
+						}
+						else
+							throw Exception("Handler not found or the default handler is not installed.");
+					}
+				}
+			}
+		}
+		catch (...)
+		{}
+	}
+};
+
+//--************************************************************************--//
+
+void __fastcall TTCPReadSocketThread::CallHandler()
+{
+     //-- вызов обработчика --//
+	 handler( json_object );
+};
+
+//--************************************************************************--//

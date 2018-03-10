@@ -1,0 +1,14 @@
+﻿[OK_Button]
+Coordinates=70,10,77,58
+
+[Image]
+Coordinates=10,10,50,58
+
+[]
+Coordinates=157,10,72,36
+Visible=True
+LayerNames=
+
+[Module Settings]
+ModelLayerNames="Powered by Arthur Lazerenko";Powered;by;Arthur;Lazerenko
+

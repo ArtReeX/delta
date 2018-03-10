@@ -1,0 +1,36 @@
+//-- ******************************************* --//
+//-- ****************** Others ***************** --//
+//-- ******************************************* --//
+
+#ifndef OTHERSH
+#define OTHERSH
+
+//-- подключение идентификаторов данных --//
+#include <MapsID.h>
+
+
+//-- подключение JSON --//
+#include <System.JSON.hpp>
+
+#include "MainForm_Delta.h"
+#include "DebugForm_Delta.h"
+
+namespace HandlersNS
+{
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК АВТОРИЗАЦИИ --//
+	void CheckAuthorization(TJSONObject *json_object_parse);
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК ЗАВЕРШЕНИЯ СБОРА ДАННЫХ --//
+	void CheckCollecting(TJSONObject *json_object_parse);
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК ЗАПУСКА СЕРВЕРА --//
+	void start(TJSONObject *json_object_parse);
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК ОСТАНОВКИ СЕРВЕРА --//
+	void stop(TJSONObject *json_object_parse);
+
+}
+
+
+#endif

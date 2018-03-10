@@ -1,0 +1,289 @@
+//---------------------------------------------------------------------------
+
+#ifndef MainForm_DeltaH
+#define MainForm_DeltaH
+//---------------------------------------------------------------------------
+#include <System.Classes.hpp>
+#include <Vcl.Controls.hpp>
+#include <Vcl.StdCtrls.hpp>
+#include <Vcl.Forms.hpp>
+#include <Vcl.Menus.hpp>
+#include <Vcl.ComCtrls.hpp>
+#include <Vcl.AppAnalytics.hpp>
+#include <Vcl.Grids.hpp>
+#include <Vcl.ExtCtrls.hpp>
+#include <Vcl.CheckLst.hpp>
+#include <Vcl.Imaging.pngimage.hpp>
+#include <System.ImageList.hpp>
+#include <Vcl.ImgList.hpp>
+#include <Vcl.ToolWin.hpp>
+
+
+#include <IdBaseComponent.hpp>
+#include <IdCoder.hpp>
+#include <IdCoder3to4.hpp>
+#include <IdCoderMIME.hpp>
+
+
+#include "TestForm_Delta.h"
+#include "DebugForm_Delta.h"
+#include "AuthForm_Delta.h"
+#include "AboutForm_Delta.h"
+#include "SettingForm_Delta.h"
+#include "AddForm_Sources_Delta.h"
+#include "EditForm_Sources_Delta.h"
+#include "AddForm_Currencys_Delta.h"
+#include "EditForm_Currencys_Delta.h"
+#include "AddForm_Lines_Delta.h"
+#include "EditForm_Lines_Delta.h"
+#include "AddForm_Corrections_Delta.h"
+#include "EditForm_Corrections_Delta.h"
+
+//-- ïîäêëş÷åíèå íåîáõîäèìûõ ôàéëîâ ïğîãğàììû ïğîãğàììû --//
+#include <Include.h>
+
+//-- ïîäêëş÷åíèå ññûëîê --//
+#include <windows.h>
+#include <ShellAPI.h>
+
+
+
+//---------------------------------------------------------------------------
+class TMainForm : public TForm
+{
+__published:
+
+	TMainMenu *MainMenu;
+	TMenuItem *AboutButton;
+	TMenuItem *ExitButton;
+	TTrayIcon *TrayIcon;
+	TMenuItem *SettingButton;
+	TPageControl *PageControl;
+	TTabSheet *SourcesTab;
+	TTabSheet *LinesTab;
+	TTabSheet *ParametersTab;
+	TTabSheet *CorrectionsTab;
+	TStringGrid *Sources_StringGrid;
+	TStaticText *Parameters_CoefficientStatic;
+	TStaticText *Parameters_MaxLengthStatic;
+	TEdit *Parameters_CoefficientEdit;
+	TEdit *Parameters_MaxLengthEdit;
+	TButton *Parameters_SaveButton;
+	TMenuItem *LoginButton;
+	TTabSheet *CurrencysTab;
+	TImageList *TrayImageList;
+	TTabSheet *ArbitrationsTab;
+	TStringGrid *Currencys_StringGrid;
+	TStringGrid *Lines_NamesStringGrid;
+	TStringGrid *Lines_SourcesStringGrid;
+	TStringGrid *Lines_CurrencysStringGrid;
+	TStringGrid *Corrections_StringGrid;
+	TIdDecoderMIME *Decoder;
+	TIdEncoderMIME *Encoder;
+	TMemo *Lines_NotesMemo;
+	TStaticText *Lines_NotesStatic;
+	TMenuItem *ContrServButton;
+	TMenuItem *StartButton;
+	TMenuItem *StopButton;
+	TTabSheet *ÑollectionsTab;
+	TStringGrid *Collections_StringGrid;
+	TStringGrid *Arbitrations_ActionsGrid;
+	TStringGrid *Lines_BasesStringGrid;
+	TStatusBar *StatusBar;
+	TMenuItem *RestartButton;
+	TToolBar *Sources_ToolBar;
+	TToolButton *Sources_AddButton;
+	TImageList *ToolBarImageList;
+	TToolButton *Sources_EditButton;
+	TToolButton *Sources_DeleteButton;
+	TToolButton *Sources_ToolSeparator_1;
+	TToolButton *Sources_EnableAllButton;
+	TToolButton *Sources_DisableAllButton;
+	TToolBar *Currencys_ToolBar;
+	TToolButton *Currencys_AddButton;
+	TToolButton *Currencys_EditButton;
+	TToolButton *Currencys_DeleteButton;
+	TToolButton *Currencys_ToolSeparator_1;
+	TToolButton *Currencys_EnableAllButton;
+	TToolButton *Currencys_DisableAllButton;
+	TToolBar *Lines_ToolBar;
+	TToolButton *Lines_AddButton;
+	TToolButton *Lines_EditButton;
+	TToolButton *Lines_DeleteButton;
+	TToolButton *Lines_ToolSeparator_1;
+	TToolButton *Lines_EnableAllButton;
+	TToolButton *Lines_DisableAllButton;
+	TToolBar *Corrections_ToolBar;
+	TToolButton *Corrections_AddButton;
+	TToolButton *Corrections_EditButton;
+	TToolButton *Corrections_DeleteButton;
+	TToolButton *Corrections_ToolSeparator_1;
+	TToolButton *Corrections_EnableAllButton;
+	TToolButton *Corrections_DisableAllButton;
+	TToolBar *Arbitrations_ToolBar;
+	TToolButton *Arbitrations_ClearButton;
+	void __fastcall AboutButton_OneClick(TObject *Sender);
+	void __fastcall ExitButton_OneClick(TObject *Sender);
+	void __fastcall FormKeyDown(TObject *Sender, WORD &Key, TShiftState Shift);
+	void __fastcall TrayIcon_OneClick(TObject *Sender);
+	void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
+	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall Setting_OneClick(TObject *Sender);
+	void __fastcall Source_AddButton_OneClick(TObject *Sender);
+	void __fastcall Source_DeleteButton_OneClick(TObject *Sender);
+	void __fastcall Sources_EditButton_OneClick(TObject *Sender);
+	void __fastcall Login_OneClick(TObject *Sender);
+	void __fastcall FormShow(TObject *Sender);
+	void __fastcall Currencys_AddButton_OneClick(TObject *Sender);
+	void __fastcall Currencys_EditButton_OneClick(TObject *Sender);
+	void __fastcall Currencys_DeleteButton_OneClick(TObject *Sender);
+	void __fastcall Lines_DeleteButton_OneClick(TObject *Sender);
+	void __fastcall Lines_NamesStringGridSelectCell(TObject *Sender, int ACol, int ARow,
+          bool &CanSelect);
+	void __fastcall Lines_AddButton_OneClick(TObject *Sender);
+	void __fastcall Lines_EditButton_OneClick(TObject *Sender);
+	void __fastcall Parameters_SaveButton_OneClick(TObject *Sender);
+	void __fastcall Corrections_DeleteButton_OneClick(TObject *Sender);
+	void __fastcall Corrections_AddButton_OneClick(TObject *Sender);
+	void __fastcall Corrections_EditButton_OneClick(TObject *Sender);
+	void __fastcall StartButton_OneClick(TObject *Sender);
+	void __fastcall StopButton_OneClick(TObject *Sender);
+	void __fastcall Sources_EnableAllButton_OneClick(TObject *Sender);
+	void __fastcall Sources_DisableAllButton_OneClick(TObject *Sender);
+	void __fastcall Currencys_EnableAllButton_OneClick(TObject *Sender);
+	void __fastcall Currencys_DisableAllButton_OneClick(TObject *Sender);
+	void __fastcall Corrections_EnableAllButton_OneClick(TObject *Sender);
+	void __fastcall Corrections_DisableAllButton_OneClick(TObject *Sender);
+	void __fastcall Lines_EnableAllButton_OneClick(TObject *Sender);
+	void __fastcall Lines_DisableAllButton_OneClick(TObject *Sender);
+	void __fastcall Sources_StringGridDblClick(TObject *Sender);
+	void __fastcall Currencys_StringGridDblClick(TObject *Sender);
+	void __fastcall Lines_NamesStringGridDblClick(TObject *Sender);
+	void __fastcall Corrections_StringGridDblClick(TObject *Sender);
+	void __fastcall FormResize(TObject *Sender);
+	void __fastcall PageControlChange(TObject *Sender);
+	void __fastcall RestartButton_OneClick(TObject *Sender);
+	void __fastcall Sources_StringGridFixedCellClick(TObject *Sender, int ACol, int ARow);
+	void __fastcall Currencys_StringGridFixedCellClick(TObject *Sender, int ACol, int ARow);
+	void __fastcall Lines_NamesStringGridFixedCellClick(TObject *Sender, int ACol, int ARow);
+	void __fastcall Corrections_StringGridFixedCellClick(TObject *Sender, int ACol,
+          int ARow);
+	void __fastcall Arbitrations_ActionsGridFixedCellClick(TObject *Sender, int ACol,
+		  int ARow);
+	void __fastcall Arbitrations_ActionsGridDrawCell(TObject *Sender, int ACol, int ARow,
+          TRect &Rect, TGridDrawState State);
+	void __fastcall Arbitrations_ClearButton_OneClick(TObject *Sender);
+	void __fastcall Sources_StringGridSelectCell(TObject *Sender, int ACol, int ARow,
+          bool &CanSelect);
+	void __fastcall Sources_StringGridDrawCell(TObject *Sender, int ACol, int ARow,
+		  TRect &Rect, TGridDrawState State);
+	void __fastcall Sources_StringGridMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
+	void __fastcall Currencys_StringGridMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
+	void __fastcall Lines_NamesStringGridMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
+	void __fastcall Corrections_StringGridMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
+	void __fastcall Arbitrations_ActionsGridMouseUp(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
+
+
+
+
+
+private:
+
+	//-- ïàğàìåòğû èíòåğôåéñà ïğîãğàììû --//
+	struct SInterfaceConfig
+	{
+		//-- âåğñèÿ ïğîãğàììû --//
+		UnicodeString version = "1.40";
+
+		//-- ìèíèìàëüíûé ğàçìåğ ôîğì --//
+		unsigned int min_size_width = 1000;
+		unsigned int min_size_height = 600;
+
+		//-- èíäèêàòîğ ñâîğà÷èâàíèÿ â òğåé --//
+		bool tray_minimize = true;
+
+		//-- èíäèêàòîğ ñîñòîÿíèÿ, ñâ¸ğíóòà ëè â òğåé ïğîãğàììà --//
+		bool tray_minimize_state = false;
+	};
+
+
+    //-- îáüåêò ñ ïàğàìåòğàìè èíòåğôåéñà ïğîãğàììû --//
+	SInterfaceConfig interface_conf;
+
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÑÒÀÍÄÀĞÒÍÛÕ ÍÀÄÏÈÑÅÉ ÒÀÁËÈÖÛ SOURCE GRID --//
+	void DefaultSourcesGrid();
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÑÒÀÍÄÀĞÒÍÛÕ ÍÀÄÏÈÑÅÉ ÒÀÁËÈÖÛ CURRENCYS GRID --//
+	void DefaultCurrencysGrid();
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÑÒÀÍÄÀĞÒÍÛÕ ÍÀÄÏÈÑÅÉ ÒÀÁËÈÖÛ LINES GRID --//
+	void DefaultLinesGrid();
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÑÒÀÍÄÀĞÒÍÛÕ ÍÀÄÏÈÑÅÉ ÒÀÁËÈÖÛ CORRECTIONS GRID --//
+	void DefaultCorrectionsGrid();
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÑÒÀÍÄÀĞÒÍÛÕ ÍÀÄÏÈÑÅÉ ÒÀÁËÈÖÛ ARBITRATIONS GRID --//
+	void DefaultArbitrationsGrid();
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÑÒÀÍÄÀĞÒÍÛÕ ÍÀÄÏÈÑÅÉ ÒÀÁËÈÖÛ COLLECTIONS GRID --//
+	void DefaultCollectionsGrid();
+
+public:
+
+	//-- ñîçäàíèå äâèæêà ïğîãğàììû --//
+	std::shared_ptr< TEngineNS::TEngine > engine;
+
+	//-- äàííûå ñòàğòà è îêîí÷àíèÿ ñáîğà äàííûõ --//
+	STimeCollect time_collect;
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÒÅÌÛ ÎÔÎĞÌËÅÍÈß --//
+	void SetThemeProgram();
+
+	//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÂÑÅÕ ÏÀĞÀÌÅÒĞÎÂ İËÅÌÅÍÒÎÂ (ĞÀÇÌÅĞ è ò.ä.) --//
+	void SetParamElements();
+
+    //-- ÔÓÍÊÖÈß ÎÏÎÂÅÙÅÍÈß --//
+	void ShowHint(const UnicodeString Text);
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß ÇÍÀ×ÅÍÈÉ ÏÎÑËÅÄÍÅÃÎ ÎÁÍÎÂËÅÍÈß ÄÀÍÍÛÕ --//
+	void UpdateLastCollected(const bool SetTime = false);
+
+	//-- ÔÓÍÊÖÈß Î×ÈÑÒÊÈ STRING GRID --//
+	void ClearStringGrid(TStringGrid *StringGrid);
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß SOURCES --//
+	void UpdateSources(unsigned int Row = 1, bool AutoUpdate = false);
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß CURRENCYS --//
+	void UpdateCurrencys(unsigned int Row = 1, bool AutoUpdate = false);
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß LINES--//
+	void UpdateLines(unsigned int NamesRow = 1, unsigned int SourcesRow = 1, unsigned int CurrencysRow = 1, unsigned int BasesRow = 1, bool AutoUpdate = false);
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß PARAMETERS --//
+	void UpdateParams();
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß CORRECTIONS --//
+	void UpdateCorrections(unsigned int Row = 1, bool AutoUpdate = false);
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß ARBITRATIONS --//
+	void UpdateArbitrations(unsigned int Row = 1, bool AutoUpdate = false);
+
+	//-- ÔÓÍÊÖÈß ÎÁÍÎÂËÅÍÈß COLLECTIONS --//
+	void UpdateCollections(unsigned int Row = 1, bool AutoUpdate = false);
+
+
+	__fastcall TMainForm(TComponent* Owner);
+
+};
+
+//---------------------------------------------------------------------------
+extern PACKAGE TMainForm *MainForm;
+//---------------------------------------------------------------------------
+#endif

@@ -1,0 +1,300 @@
+//-- ******************************************* --//
+//-- ****************** Others ***************** --//
+//-- ******************************************* --//
+
+#include <vcl.h>
+
+//-- подключение заголовочного файла --//
+#include "Others.h"
+
+
+
+namespace HandlersNS
+{
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК АВТОРИЗАЦИИ --//
+	void CheckAuthorization(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект для работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата успеха авторизации --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если авторизация прошла успешно --//
+		if(json_object->GetValue("result")->Value() == "true")
+		{
+			ShowMessage("Authorization was successful.");
+
+			//-- открытие доступа к интерфейсу --//
+			MainForm->PageControl->Enabled = true;
+
+			//-- включение кнопок управления сервером --//
+			MainForm->ContrServButton->Enabled = true;
+
+
+
+
+			//-- загрузка параметров --//
+			MainForm->engine->Send("getParams","getParams");
+			Sleep(300);
+
+			//-- загрузка источников --//
+			MainForm->engine->Send("getSources","getSources");
+
+			//-- загрузка валют --//
+			MainForm->engine->Send("getCurrencys","getCurrencys");
+			Sleep(300);
+
+			//-- загрузка линий --//
+			MainForm->engine->Send("getLines","getLines");
+
+			//-- загрузка коррекций --//
+			MainForm->engine->Send("getCorrections","getCorrections");
+
+			//-- загрузка состояния сервера --//
+			MainForm->engine->Send("getState","getState");
+
+		}
+		else
+		{
+			ShowMessage("Incorrect login or password.");
+		}
+	}
+
+
+    //-- ФУНКЦИЯ-ОБРАБОТЧИК ЗАПУСКА СЕРВЕРА --//
+	void start(TJSONObject *json_object_parse)
+	{
+		//-- изменение элементов вкладки после определения активности сервера --//
+		MainForm->StartButton->Enabled = false;
+		MainForm->StopButton->Enabled = true;
+
+        //-- обновление статус бара --//
+		MainForm->StatusBar->Panels->Items[0]->Text = "Server started: " + FormatDateTime("dd.mm.yy hh:nn:ss", Now());
+    }
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК ОСТАНОВКИ СЕРВЕРА --//
+	void stop(TJSONObject *json_object_parse)
+	{
+		//-- изменение элементов вкладки после определения активности сервера --//
+		MainForm->StartButton->Enabled = true;
+		MainForm->StopButton->Enabled = false;
+
+		//-- обновление статус бара --//
+		MainForm->StatusBar->Panels->Items[0]->Text = "Server stopped: " + FormatDateTime("dd.mm.yy hh:nn:ss", Now());
+	}
+
+    //-- ФУНКЦИЯ-ОБРАБОТЧИК СОСТОЯНИЯ СЕРВЕРА --//
+	void getState(TJSONObject *json_object_parse)
+	{
+        //-- обьект для работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата состояния сервера --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если сервер активен --//
+		if(json_object->GetValue("state")->Value().ToInt() == 1)
+		{
+			//-- изменение элементов вкладки после определения активности сервера --//
+
+			MainForm->StartButton->Enabled = false;
+			MainForm->StopButton->Enabled = true;
+
+            //-- обновление статус бара --//
+			MainForm->StatusBar->Panels->Items[0]->Text = "Server started: " + FormatDateTime("dd.mm.yy hh:nn:ss", Now());
+		}
+		else
+		{
+			//-- изменение элементов вкладки после определения активности сервера --//
+
+			MainForm->StartButton->Enabled = true;
+			MainForm->StopButton->Enabled = false;
+
+            //-- обновление статус бара --//
+			MainForm->StatusBar->Panels->Items[0]->Text = "Server stopped: " + FormatDateTime("dd.mm.yy hh:nn:ss", Now());
+		}
+	}
+
+
+    //-- ФУНКЦИЯ-ОБРАБОТЧИК ПОЛУЧЕНИЯ НОВОЙ АРБИТРАЖНОЙ ОПЕРАЦИИ --//
+	void chain(TJSONObject *json_object_parse)
+	{
+        //-- обьекты для работы с JSON --//
+		TJSONObject *json_object;
+		TJSONArray 	*json_array;
+
+		//-- получение данных --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			//-- запись данных --//
+
+			SArbitration arbitration;
+
+			if( json_object->Get("factor") )
+				arbitration.factor = json_object->GetValue("factor")->Value();
+
+			if( json_object->Get("line") )
+				arbitration.line = json_object->GetValue("line")->Value();
+
+			if( json_object->Get("actions") )
+			{
+				json_array = dynamic_cast<TJSONArray*>( json_object->Get("actions")->JsonValue );
+
+				for(int i=0; i != json_array->Size(); i++)
+				{
+
+					TJSONObject *json_object_operation = dynamic_cast<TJSONObject*>( json_array->Get(i) );
+
+					SOperation operation;
+
+					if( json_object_operation->Get("currOut") )
+						operation.currOut = json_object_operation->GetValue("currOut")->Value();
+
+					if( json_object_operation->Get("currIn") )
+						operation.currIn = json_object_operation->GetValue("currIn")->Value();
+
+					if( json_object_operation->Get("idSource") )
+						operation.idSource = json_object_operation->GetValue("idSource")->Value();
+
+					if( json_object_operation->Get("rate") )
+						operation.rate = json_object_operation->GetValue("rate")->Value();
+
+					if( json_object_operation->Get("realRate") )
+						operation.realRate = json_object_operation->GetValue("realRate")->Value();
+
+					if( json_object_operation->Get("amount") )
+						operation.amount = json_object_operation->GetValue("amount")->Value();
+
+
+					arbitration.operations.push_back( operation );
+				}
+
+                arbitration.time = "A:" + FormatDateTime("hh:nn:ss", Now());
+			}
+
+
+            //-- удаление старых операций, если это необходимо --//
+			if(MainForm->engine->Data()->map_arbitrations.size() >= 100)
+			{
+				//-- поиск неактуальной операции --//
+				MArbitration::iterator iterator_operation;
+
+				for(iterator_operation = MainForm->engine->Data()->map_arbitrations.begin(); iterator_operation != MainForm->engine->Data()->map_arbitrations.end(); iterator_operation ++)
+				{
+					if(iterator_operation->second.relevance == false)
+						break;
+				}
+
+				if(iterator_operation != MainForm->engine->Data()->map_arbitrations.end())
+					MainForm->engine->Data()->map_arbitrations.erase( iterator_operation );
+				else
+					MainForm->engine->Data()->map_arbitrations.erase( -- MainForm->engine->Data()->map_arbitrations.end() );
+			}
+
+
+
+			MArbitration::iterator iterator_operation;
+
+			//-- определение существования такой же операции --//
+			for(iterator_operation = MainForm->engine->Data()->map_arbitrations.begin(); iterator_operation != MainForm->engine->Data()->map_arbitrations.end(); iterator_operation ++)
+			{
+				//-- индикатор совпадения операций --//
+				unsigned int ind_operation = 0;
+
+
+				//-- проверка на совпадение одинаковых данных --//
+
+				for(std::vector< SOperation >::iterator iterator_main = iterator_operation->second.operations.begin(); iterator_main != iterator_operation->second.operations.end(); iterator_main ++)
+				{
+					for(std::vector< SOperation >::iterator iterator_additional = arbitration.operations.begin(); iterator_additional != arbitration.operations.end(); iterator_additional ++)
+					{
+						if( iterator_operation->second.line == arbitration.line
+							&& iterator_main->currOut == iterator_additional->currOut
+							&& iterator_main->currIn == iterator_additional->currIn
+							&& iterator_main->idSource == iterator_additional->idSource
+							&& iterator_main->rate == iterator_additional->rate
+							&& iterator_main->realRate == iterator_additional->realRate
+						  )
+						{
+							ind_operation ++;
+						}
+					}
+
+					if(ind_operation)
+						break;
+				}
+			}
+
+			if(iterator_operation != MainForm->engine->Data()->map_arbitrations.end())
+			{
+                ShowMessage("Yes");
+				//-- проверка на разный коэфициент --//
+				if(iterator_operation->second.factor != arbitration.factor)
+				{
+					//-- закрытие старой операции --//
+					iterator_operation->second.relevance = false;
+
+					iterator_operation->second.time = "D:" + FormatDateTime("hh:nn:ss", Now());
+
+
+
+					//-- СОЗДАНИЕ НОВОЙ ОПЕРАЦИИ --//
+
+
+					//-- пометка актуальности --//
+					arbitration.relevance = true;
+
+
+					//-- добавление новой арбитражной операции --//
+					unsigned int id = 0;
+
+					if(MainForm->engine->Data()->map_arbitrations.size())
+						id = (-- MainForm->engine->Data()->map_arbitrations.end())->first + 1;
+
+					//MainForm->engine->Data()->map_arbitrations.insert(std::make_pair( id, arbitration ));
+				}
+				else
+				{
+					//-- обновление времени операции --//
+					iterator_operation->second.time = "A:" + FormatDateTime("hh:nn:ss", Now());
+				}
+			}
+
+			else
+
+			{
+				//-- пометка актуальности --//
+				arbitration.relevance = true;
+
+
+				//-- добавление новой арбитражной операции --//
+				unsigned int id = 0;
+
+				if(MainForm->engine->Data()->map_arbitrations.size())
+					id = (-- MainForm->engine->Data()->map_arbitrations.end())->first + 1;
+
+				MainForm->engine->Data()->map_arbitrations.insert(std::make_pair( id, arbitration ));
+
+
+				//-- показ уведомления о новой операции --//
+				MainForm->ShowHint("Found a new arbitration operation.");
+			}
+
+
+
+            //-- сортировка по заданому типу --//
+			MainForm->engine->SortArbitrations(MainForm->engine->Config()->SortArbitrations, MainForm->engine->Config()->SortArbitrationsInd);
+
+			//-- обновление таблицы --//
+			MainForm->UpdateArbitrations(MainForm->Arbitrations_ActionsGrid->Row, true);
+		}
+	}
+
+}
+
+

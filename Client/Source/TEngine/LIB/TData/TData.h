@@ -1,0 +1,104 @@
+//-----------------------------------------------------------//
+//-------------------------- TData --------------------------//
+//---------------------------(H)-----------------------------//
+
+#ifndef TDataH
+#define TDataH
+
+//-- подключение MAPs ID --//
+#include "MapsID.h"
+
+//-- подключение типов сортировки --//
+#include "SortTypes.h"
+
+//-- подключение MAP --//
+#include <map>
+
+//-- подключение Vector --//
+#include <vector>
+
+//-- подключение интеллектуальных указателей --//
+#include <memory>
+
+//-- подключение алгоритмов --//
+#include <algorithm>
+
+
+namespace TDataNS
+{
+
+	class TData
+	{
+
+	private:
+
+		//-- создание хранилища данных --//
+		std::shared_ptr< SData > data;
+
+        //-- листинг строк --//
+		std::vector< UnicodeString > string_list;
+
+		//-- вектор индексов отсортированых источников --//
+		std::vector< int > sorted_sources;
+
+		//-- вектор индексов отсортированых валют --//
+		std::vector< int > sorted_currencys;
+
+		//-- вектор индексов отсортированых линий --//
+		std::vector< int > sorted_lines;
+
+		//-- вектор индексов коррекций --//
+		std::vector< int > sorted_corrections;
+
+		//-- вектор индексов арбитражей --//
+		std::vector< int > sorted_arbitrations;
+
+		//-- функция обновления всех данных в зависимости от типа сортировки --//
+		void UpdateWithSortParam();
+
+	public:
+
+		//-- стандартный конструктор --//
+		TData();
+
+		//-- стандартный деструктор --//
+		~TData();
+
+		//-- функция возврата хранилища данных --//
+		SData* Data();
+
+		//-- функция сортировки источников --//
+		void SortSources(const unsigned int Type = eID, bool TypeInd = true);
+
+		//-- функция сортировки валют --//
+		void SortCurrencys(const unsigned int Type = eID, bool TypeInd = true);
+
+		//-- функция сортировки линий --//
+		void SortLines(const unsigned int Type = eID, bool TypeInd = true);
+
+		//-- функция сортировки коррекций --//
+		void SortCorrections(const unsigned int Type = eID, bool TypeInd = true);
+
+		//-- функция сортировки арбитражей --//
+		void SortArbitrations(const unsigned int Type = eID, bool TypeInd = true);
+
+		//-- функция возврата векторов индексов отсортированых источников --//
+		std::vector< int > &GetSortedSources();
+
+		//-- функция возврата векторов индексов отсортированых валют --//
+		std::vector< int > &GetSortedСurrencys();
+
+		//-- функция возврата векторов индексов отсортированых линий --//
+		std::vector< int > &GetSortedLines();
+
+		//-- функция возврата векторов индексов отсортированых коррекций --//
+		std::vector< int > &GetSortedCorrections();
+
+		//-- функция возврата векторов индексов отсортированых арбитражей --//
+		std::vector< int > &GetSortedArbitrations();
+
+	};
+
+};
+
+#endif

@@ -1,0 +1,46 @@
+//-- ******************************************* --//
+//-- ***************** Sources ***************** --//
+//-- ******************************************* --//
+
+#ifndef COLLETIONSH
+#define COLLETIONSH
+
+//-- ОНДЙКЧВЕМХЕ ХДЕМРХТХЙЮРНПНБ ДЮММШУ --//
+#include <MapsID.h>
+
+
+//-- ОНДЙКЧВЕМХЕ JSON --//
+#include <System.JSON.hpp>
+
+#include "MainForm_Delta.h"
+#include "DebugForm_Delta.h"
+
+namespace HandlersNS
+{
+
+
+	//-- тсмйжхъ-напюанрвхй онксвемхъ хярнвмхйнб --//
+	void getSources(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй пегскэрюрю днаюбкемхъ хярнвмхйю --//
+	void CheckAddSource(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй пегскэрюрю хглемемхъ хярнвмхйю --//
+	void CheckEditSource(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй пегскэрюрю сдюкемхъ хярнвмхйю --//
+	void CheckDeleteSource(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй хглемемхъ хярнвмхйю --//
+	void editSource(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй днаюбкемхъ хярнвмхйю --//
+	void addSource(TJSONObject *json_object_parse);
+
+	//-- тсмйжхъ-напюанрвхй сдюкемхъ хярнвмхйю --//
+	void deleteSource(TJSONObject *json_object_parse);
+
+}
+
+
+#endif

@@ -1,0 +1,295 @@
+//-- ******************************************* --//
+//-- **************** Currencys **************** --//
+//-- ******************************************* --//
+
+#include <vcl.h>
+
+//-- подключение заголовочного файла --//
+#include "Currencys.h"
+
+
+
+namespace HandlersNS
+{
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ѕќЋ”„≈Ќ»я ¬јЋё“ --//
+	void getCurrencys(TJSONObject *json_object_parse)
+	{
+        //-- обьекты дл€ работы с JSON --//
+		TJSONObject *json_object;
+		TJSONArray 	*json_array;
+
+		//-- получение массива с источниками --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+
+			if( json_object->Get("currencys") )
+			{
+				json_array =  dynamic_cast<TJSONArray*>( json_object->Get("currencys")->JsonValue );
+
+				//-- очистка идентификаторов --//
+				MainForm->engine->Data()->map_currencys.clear();
+
+				//-- очистка таблиц --//
+				MainForm->ClearStringGrid( MainForm->Currencys_StringGrid );
+
+
+				//-- парсинг массива с валютами --//
+				for(int i=0; i != json_array->Size(); i++)
+				{
+					json_object = dynamic_cast<TJSONObject*>( json_array->Get(i) );
+
+					SCurrency currencys;
+
+					//-- добавление об€зательных значений в таблицу --//
+					currencys.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+					currencys.shortn = MainForm->Decoder->DecodeString( json_object->GetValue("short")->Value(), IndyTextEncoding_UTF8() );
+
+					currencys.fee = json_object->GetValue("fee")->Value();
+
+					currencys.minSum = json_object->GetValue("minSum")->Value();
+
+					currencys.base = json_object->GetValue("base")->Value();
+
+					currencys.enabled = json_object->GetValue("enabled")->Value();
+
+					//-- добавление необ€зательных значений в таблицу --//
+					if( json_object->GetValue("notes") )
+						currencys.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+					//-- запись идентификатора --//
+					MainForm->engine->Data()->map_currencys.insert( std::make_pair( json_object->GetValue("id")->Value().ToInt(), currencys ));
+				}
+
+
+				//-- сортировка по заданому типу --//
+				MainForm->engine->SortCurrencys(MainForm->engine->Config()->SortCurrencys);
+
+                //-- обновление таблицы --//
+				MainForm->UpdateCurrencys(MainForm->Currencys_StringGrid->Row, true);
+			}
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј ƒќЅј¬Ћ≈Ќ»я ¬јЋё“џ --//
+	void CheckAddCurrency(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Adding completed successfully.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Source with that name already exists.");
+			}
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј »«ћ≈Ќ≈Ќ»я ¬јЋё“џ --//
+	void CheckEditCurrency(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Change is successful.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("The currency of the same name (name) or short name (short) already exists.");
+			}
+			else
+			{
+				if(json_object->GetValue("result")->Value().ToInt() == 2)
+				{
+					ShowMessage("Wrong ID.");
+				}
+			}
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј ”ƒјЋ≈Ќ»я ¬јЋё“џ --//
+	void CheckDeleteCurrency(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Removal completed successfully.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Wrong value of the ID field.");
+			}
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  »«ћ≈Ќ≈Ќ»я ¬јЋё“џ --//
+	void editCurrency(TJSONObject *json_object_parse)
+	{
+        //-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение добавленного источника --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			//-- поиск измен€емого элемента по ID --//
+			MCurrency::iterator iterator_currency = MainForm->engine->Data()->map_currencys.find( json_object->GetValue("id")->Value().ToInt() );
+
+
+			//-- изменение данных --//
+			if( json_object->GetValue("name") )
+				iterator_currency->second.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("short") )
+				iterator_currency->second.shortn = MainForm->Decoder->DecodeString( json_object->GetValue("short")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("notes") )
+				iterator_currency->second.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("fee") )
+				iterator_currency->second.fee = json_object->GetValue("fee")->Value();
+
+			if( json_object->GetValue("minSum") )
+				iterator_currency->second.minSum = json_object->GetValue("minSum")->Value();
+
+			if( json_object->GetValue("base") )
+				iterator_currency->second.base = json_object->GetValue("base")->Value();
+
+			if( json_object->GetValue("enabled") )
+				iterator_currency->second.enabled = json_object->GetValue("enabled")->Value();
+
+            if( json_object->GetValue("notes") )
+				iterator_currency->second.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+			//-- сортировка по заданому типу --//
+			MainForm->engine->SortCurrencys(MainForm->engine->Config()->SortCurrencys);
+
+			//-- обновление таблицы --//
+			MainForm->UpdateCurrencys(MainForm->Currencys_StringGrid->Row, true);
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ƒќЅј¬Ћ≈Ќ»я ¬јЋё“џ --//
+	void addCurrency(TJSONObject *json_object_parse)
+	{
+        //-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение добавленного источника --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			SCurrency currencys;
+
+			//-- добавление об€зательных значений в таблицу --//
+			currencys.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+			currencys.shortn = MainForm->Decoder->DecodeString( json_object->GetValue("short")->Value(), IndyTextEncoding_UTF8() );
+
+			//-- добавление необ€зательных значений в таблицу --//
+			if( json_object->GetValue("notes") )
+				currencys.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+			if( json_object->GetValue("fee") )
+				currencys.fee = json_object->GetValue("fee")->Value().ToDouble();
+
+			if( json_object->GetValue("minSum") )
+				currencys.minSum = json_object->GetValue("minSum")->Value();
+
+			if( json_object->GetValue("base") )
+				currencys.base = json_object->GetValue("base")->Value().ToInt();
+
+			if( json_object->GetValue("enabled") )
+				currencys.enabled = json_object->GetValue("enabled")->Value().ToInt();
+
+            if( json_object->GetValue("notes") )
+				currencys.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+
+			//-- запись идентификатора --//
+			MainForm->engine->Data()->map_currencys.insert( std::make_pair( json_object->GetValue("id")->Value().ToInt(), currencys ));
+
+            //-- сортировка по заданому типу --//
+			MainForm->engine->SortCurrencys(MainForm->engine->Config()->SortCurrencys);
+
+			//-- обновление таблицы --//
+			MainForm->UpdateCurrencys(MainForm->Currencys_StringGrid->Row, true);
+		}
+	}
+
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ”ƒјЋ≈Ќ»я ¬јЋё“џ --//
+	void deleteCurrency(TJSONObject *json_object_parse)
+	{
+        //-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			//-- удаление источника --//
+			MainForm->engine->Data()->map_currencys.erase( MainForm->engine->Data()->map_currencys.find(json_object->GetValue("id")->Value().ToInt()) );
+
+            //-- сортировка по заданому типу --//
+			MainForm->engine->SortCurrencys(MainForm->engine->Config()->SortCurrencys);
+
+            //-- обновление таблицы --//
+			MainForm->UpdateCurrencys(MainForm->Currencys_StringGrid->Row - 1, true);
+		}
+	}
+
+}
+
+
+
+
+

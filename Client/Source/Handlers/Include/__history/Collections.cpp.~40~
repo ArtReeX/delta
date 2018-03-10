@@ -1,0 +1,88 @@
+//-- ******************************************* --//
+//-- *************** Collections *************** --//
+//-- ******************************************* --//
+
+#include <vcl.h>
+
+//-- подключение заголовочного файла --//
+#include "Collections.h"
+
+
+
+namespace HandlersNS
+{
+
+
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК НАЧАЛА СБОРА ДАННЫХ --//
+	void collect(TJSONObject *json_object_parse)
+	{
+        //-- очистка старой информации о собранных данных --//
+		MainForm->engine->Data()->map_collections.clear();
+
+		//-- запись времени начала сбора данных --//
+		MainForm->time_collect.StartCollectDD = FormatDateTime("dd", Now()).ToInt();
+		MainForm->time_collect.StartCollectMM = FormatDateTime("mm", Now()).ToInt();
+		MainForm->time_collect.StartCollectYY = FormatDateTime("yy", Now()).ToInt();
+		MainForm->time_collect.StartCollectHH = FormatDateTime("hh", Now()).ToInt();
+		MainForm->time_collect.StartCollectNN = FormatDateTime("nn", Now()).ToInt();
+		MainForm->time_collect.StartCollectSS = FormatDateTime("ss", Now()).ToInt();
+	}
+
+	//-- ФУНКЦИЯ-ОБРАБОТЧИК КОНЦА СБОРА ДАННЫХ --//
+	void collected(TJSONObject *json_object_parse)
+	{
+		//-- обновление значений последнего обновления данных --//
+		MainForm->UpdateLastCollected(true);
+
+		//-- запись времени конца сбора данных --//
+		MainForm->time_collect.EndCollectDD = FormatDateTime("dd", Now()).ToInt();
+		MainForm->time_collect.EndCollectMM = FormatDateTime("mm", Now()).ToInt();
+		MainForm->time_collect.EndCollectYY = FormatDateTime("yy", Now()).ToInt();
+		MainForm->time_collect.EndCollectHH = FormatDateTime("hh", Now()).ToInt();
+		MainForm->time_collect.EndCollectNN = FormatDateTime("nn", Now()).ToInt();
+		MainForm->time_collect.EndCollectSS = FormatDateTime("ss", Now()).ToInt();
+
+		//-- обновление таблицы --//
+		MainForm->UpdateCollections(MainForm->Collections_StringGrid->Row, true);
+	}
+
+    //-- ФУНКЦИЯ-ОБРАБОТЧИК СБОРА ДАННЫХ --//
+	void processSource(TJSONObject *json_object_parse)
+	{
+        //-- обьект для работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение добавленного источника --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+            UnicodeString notes;
+
+			//-- определение результата сбора --//
+			if( json_object->GetValue("num") )
+				notes = "Collected: " + json_object->GetValue("num")->Value();
+
+			if( json_object->GetValue("error") )
+				notes = MainForm->Decoder->DecodeString( json_object->GetValue("error")->Value(), IndyTextEncoding_UTF8() );
+
+
+
+			//-- определение существования уже собранного источника --//
+			if(MainForm->engine->Data()->map_collections.find( json_object->GetValue("id")->Value().ToInt() ) != MainForm->engine->Data()->map_collections.end())
+			{
+				//-- изменение заметки --//
+				MainForm->engine->Data()->map_collections.find( json_object->GetValue("id")->Value().ToInt() )->second = notes;
+            }
+			else
+			{
+				//-- запись идентификатора --//
+				MainForm->engine->Data()->map_collections.insert( std::make_pair( json_object->GetValue("id")->Value().ToInt(), notes ));
+			}
+		}
+    }
+
+}
+
+

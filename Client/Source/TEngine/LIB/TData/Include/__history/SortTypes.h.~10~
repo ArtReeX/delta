@@ -1,0 +1,35 @@
+//-----------------------------------------------------------//
+//----------------- ИДЕНТИФИКАТОРЫ ДАННЫХ -------------------//
+//---------------------------(H)-----------------------------//
+
+#ifndef SORTTYPESH
+#define SORTTYPESH
+
+
+//-- структура для источников --//
+enum ESortTypes
+{
+	eID,
+	eNAME,
+	eURL,
+	eDATAURL,
+	eGETTER,
+	eENABLED,
+	eNOTES,
+	eSHORTN,
+	eFEE,
+	eMINSUM,
+	eBASE,
+	eCURROUT,
+	eCURRIN,
+	eIDSOURCE,
+	eRATE,
+	eREALRATE,
+	eAMOUNT,
+	eFACTOR,
+	eLINE
+};
+
+
+
+#endif

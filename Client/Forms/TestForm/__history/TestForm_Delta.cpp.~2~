@@ -1,0 +1,112 @@
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "TestForm_Delta.h"
+
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+TTestForm *TestForm;
+//---------------------------------------------------------------------------
+__fastcall TTestForm::TTestForm(TComponent* Owner)
+	: TForm(Owner)
+{
+}
+
+
+
+//---------------------------------------------------------//
+//------------ ÎÁÐÀÁÎÒ×ÈÊÈ ÑÒÀÍÄÀÐÒÍÛÕ ÑÎÁÛÒÈÉ ------------//
+//---------------------------------------------------------//
+
+//-- ÎÁÐÀÁÎÒ×ÈÊ ÏÎÊÀÇÀ ÔÎÐÌÛ --//
+void __fastcall TTestForm::FormShow(TObject *Sender)
+{
+	//-- óñòàíîâêà ñòàíäàðòíîãî îáðàáîò÷èêà òåñòîâîé ôîðìû --//
+	MainForm->engine.get()->SetDefaultHandler(TestForm_HandlerTest);
+
+	//-- ñìåíà àêòèâíîñòè êíîïîê â çàâèñèìîñòè îò ïîäêëþ÷åíèÿ --//
+	if(MainForm->engine->ConnectState())
+		SetElementConnect();
+	else
+		SetElementDisconnect();
+}
+
+//-- ÎÁÐÀÁÎÒ×ÈÊ ÇÀÊÐÛÒÈß ÔÎÐÌÛ --//
+void __fastcall TTestForm::FormClose(TObject *Sender, TCloseAction &Action)
+{
+	//-- óäàëåíèå ñòàíäàðòíîãî îáðàáîò÷èêà òåñòîâîé ôîðìû --//
+	MainForm->engine.get()->DelDefaultHandler();
+}
+
+
+
+
+//---------------------------------------------------------//
+//------------- ÎÁÐÀÁÎÒ×ÈÊÈ ÑÎÁÛÒÈÉ ÝËÅÌÅÍÒÎÂ -------------//
+//---------------------------------------------------------//
+
+//-- ÎÁÐÀÁÎÒ×ÈÊ ÏÎ ÍÀÆÀÒÈÞ ÍÀ ÊËÀÂÈØÓ "Send" --//
+void __fastcall TTestForm::SendButton_OneClick(TObject *Sender)
+{
+	if(MethodEdit->Text.IsEmpty())
+		ShowMessage("Line method is not filled.");
+	else
+	{
+		//-- îòïðàâëÿåì òåñòîâûé çàïðîñ --//
+		if(!ParamMemo->Text.IsEmpty())
+			MainForm->engine.get()->Send(MethodEdit->Text, ParamMemo->Lines->Text, "Test");
+		else
+			MainForm->engine.get()->Send(MethodEdit->Text, "Test");
+	}
+}
+
+
+//-- ÎÁÐÀÁÎÒ×ÈÊ ÏÎ ÍÀÆÀÒÈÞ ÍÀ ÊËÀÂÈØÓ "ToBase64" --//
+void __fastcall TTestForm::ToBase64ButtonClick(TObject *Sender)
+{
+	if(!ToBase64Edit->Text.IsEmpty())
+	{
+        FromBase64Edit->Clear();
+		FromBase64Edit->Text = MainForm->Encoder->EncodeString( ToBase64Edit->Text, IndyTextEncoding_UTF8() );
+	}
+}
+
+
+
+//---------------------------------------------------------//
+//------------- ÄÎÏÎËÍÈÒÅËÜÍÛÅ ÔÓÍÊÖÈÈ ÊËÀÑÑÀ -------------//
+//---------------------------------------------------------//
+
+//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÝËÅÌÅÍÒÎÂ ÔÎÐÌÛ Â ÏÎÄÊËÞ×ÅÍÍÎÌ ÐÅÆÈÌÅ --//
+void TTestForm::SetElementConnect()
+{
+	SendButton->Enabled = true;
+}
+
+//-- ÔÓÍÊÖÈß ÓÑÒÀÍÎÂÊÈ ÝËÅÌÅÍÒÂÎ ÔÎÐÌÛ Â ÎÒÊËÞ×ÅÍÍÎÌ ÐÅÆÈÌÅ --//
+void TTestForm::SetElementDisconnect()
+{
+	SendButton->Enabled = false;
+}
+
+
+
+
+//---------------------------------------------------------//
+//------------ ÃËÎÁÀËÜÍÛÅ ÎÁÐÀÁÎÒ×ÈÊÈ ÑÎÁÛÒÈÉ -------------//
+//---------------------------------------------------------//
+
+//-- ÎÁÐÀÁÎÒ×ÈÊ ÒÅÑÒÎÂÎÉ ÔÎÐÌÛ --//
+void TestForm_HandlerTest(TJSONObject *json_object_parse)
+{
+	TestForm->AnswerMemo->Lines->Add( json_object_parse->ToJSON() );
+	TestForm->AnswerMemo->Lines->Add( "----------" );
+}
+
+
+
+
+

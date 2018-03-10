@@ -1,0 +1,264 @@
+  //-----------------------------------------------------------//
+  //-------------------- ДВИЖОК ПРОГРАММЫ ---------------------//
+  //--------------------------(CPP)----------------------------//
+
+//-- подключение заголовочного файла --//
+#include "TEngine.h"
+
+namespace TEngineNS
+{
+
+	//-- стандартный конструктор --//
+	TEngine::TEngine()
+	:   TStapLIBNS::TStapLIB(),
+		way_to_config_file("files\\"),
+		name_config_file("config.ini"),
+		need_to_restart(false),
+		encoder64(new TIdEncoderMIME),
+        decoder64(new TIdDecoderMIME)
+	{
+	}
+
+	//-- стандартный деструктор --//
+	TEngine::~TEngine()
+	{
+	}
+
+
+    //-- возврат необходимости перезапуска при первом создании необходимых файлов --//
+	bool TEngine::NeedToRestart() const
+	{
+		return need_to_restart;
+    }
+
+    //-- загрузка параметров программы --//
+	void TEngine::LoadConfig()
+	{
+		//-- индикатор существования файла конфигурации --//
+		bool file_exist = true;
+
+		//-- проверка на наличие файла конфигурации --//
+		if(!FileExists( way_to_config_file + name_config_file))
+		{
+            file_exist = false;
+
+			//-- если файла конфигурации нет, создаём его --//
+
+			MkDir( way_to_config_file );
+			FileCreate( way_to_config_file + name_config_file );
+		}
+
+		//-- задание пути редактирования файла --//
+		ini_config.reset(new TIniFile ( way_to_config_file + name_config_file ));
+
+		//-- если файл существует  --//
+		if(file_exist)
+		{
+			//-- СЧИТЫВАНИЕ КОНФИГУРАЦИИ ИЗ ФАЙЛА --//
+
+			//-- параметр размера главной формы --//
+			config.MainFormWidth = ini_config.get()->ReadInteger("Interface", "MainFormWidth", config.MainFormWidth);
+            config.MainFormHeight = ini_config.get()->ReadInteger("Interface", "MainFormHeight", config.MainFormHeight);
+
+			//-- параметр получения уведомлений --//
+			config.NotificationsHint = ini_config.get()->ReadBool("Interface", "NotificationsHint", config.NotificationsHint);
+
+			//-- параметр мнимизации программы --//
+			config.TrayMinimize = ini_config.get()->ReadBool("Interface", "TrayMinimize", config.TrayMinimize);
+
+			//-- параметр темы --//
+			config.Theme = ini_config.get()->ReadBool("Interface", "Theme", config.Theme);
+
+			//-- параметр последнего обновления данных --//
+			config.LastCollectedDD = ini_config.get()->ReadInteger("LastCollected", "DD", config.LastCollectedDD);
+
+			config.LastCollectedMM = ini_config.get()->ReadInteger("LastCollected", "MM", config.LastCollectedMM);
+
+			config.LastCollectedYY = ini_config.get()->ReadInteger("LastCollected", "YY", config.LastCollectedYY);
+
+			config.LastCollectedHH = ini_config.get()->ReadInteger("LastCollected", "HH", config.LastCollectedHH);
+
+			config.LastCollectedNN = ini_config.get()->ReadInteger("LastCollected", "NN", config.LastCollectedNN);
+
+			config.LastCollectedSS = ini_config.get()->ReadInteger("LastCollected", "SS", config.LastCollectedSS);
+
+			config.LastTimeOnCollect = ini_config.get()->ReadInteger("LastCollected", "LastTimeOnCollect", config.LastTimeOnCollect);
+
+			//-- параметр хоста сервера --//
+			config.HostServer = ini_config.get()->ReadString("Server", "Host", config.HostServer);
+
+			//-- параметр порта сервера --//
+			config.PortServer = ini_config.get()->ReadInteger("Server", "Port", config.PortServer) ;
+
+			//-- параметр логина --//
+			config.LoginServer = ini_config.get()->ReadString( "Auth", "Login", config.LoginServer);
+
+			//-- параметр пароля --//
+			config.PasswordServer = decoder64.get()->DecodeString(ini_config.get()->ReadString("Auth", "Password", config.PasswordServer), IndyTextEncoding_UTF8() );
+
+			config.PasswordServer = XOR_Crypt(config.PasswordServer, "8hfwn8newf8nm298um8un23mfmuwen8fmm28fmu8n8m2fuimn283f8m8wmuf8");
+
+			//-- параметры выбраных сортировок --//
+			config.SortSources = ini_config.get()->ReadInteger("ParamSort", "SortSources", config.SortSources);
+			config.SortSourcesInd = ini_config.get()->ReadBool("ParamSort", "SortSourcesInd", config.SortSourcesInd);
+
+			config.SortCurrencys = ini_config.get()->ReadInteger("ParamSort", "SortCurrencys", config.SortCurrencys);
+			config.SortCurrencysInd = ini_config.get()->ReadBool("ParamSort", "SortCurrencysInd", config.SortCurrencysInd);
+
+			config.SortLines = ini_config.get()->ReadInteger("ParamSort", "SortLines", config.SortLines);
+			config.SortLinesInd = ini_config.get()->ReadBool("ParamSort", "SortLinesInd", config.SortLinesInd);
+
+			config.SortCorrections = ini_config.get()->ReadInteger("ParamSort", "SortCorrections", config.SortCorrections);
+			config.SortCorrectionsInd = ini_config.get()->ReadBool("ParamSort", "SortCorrectionsInd", config.SortCorrectionsInd);
+
+			config.SortArbitrations = ini_config.get()->ReadInteger("ParamSort", "SortArbitrations", config.SortArbitrations);
+			config.SortArbitrationsInd = ini_config.get()->ReadBool("ParamSort", "SortArbitrationsInd", config.SortArbitrationsInd);
+
+            //-- параметры коэффициентов ширины столбцов --//
+			config.SourcesCol_0 = ini_config.get()->ReadFloat("ParamWidth", "SourcesCol_0", config.SourcesCol_0);
+			config.SourcesCol_1 = ini_config.get()->ReadFloat("ParamWidth", "SourcesCol_1", config.SourcesCol_1);
+			config.SourcesCol_2 = ini_config.get()->ReadFloat("ParamWidth", "SourcesCol_2", config.SourcesCol_2);
+			config.SourcesCol_3 = ini_config.get()->ReadFloat("ParamWidth", "SourcesCol_3", config.SourcesCol_3);
+			config.SourcesCol_4 = ini_config.get()->ReadFloat("ParamWidth", "SourcesCol_4", config.SourcesCol_4);
+			config.SourcesCol_5 = ini_config.get()->ReadFloat("ParamWidth", "SourcesCol_5", config.SourcesCol_5);
+			config.SourcesCol_6 = ini_config.get()->ReadFloat("ParamWidth", "SourcesCol_6", config.SourcesCol_6);
+
+			config.CurrencysCol_0 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_0", config.CurrencysCol_0);
+			config.CurrencysCol_1 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_1", config.CurrencysCol_1);
+			config.CurrencysCol_2 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_2", config.CurrencysCol_2);
+			config.CurrencysCol_3 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_3", config.CurrencysCol_3);
+			config.CurrencysCol_4 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_4", config.CurrencysCol_4);
+			config.CurrencysCol_5 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_5", config.CurrencysCol_5);
+			config.CurrencysCol_6 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_6", config.CurrencysCol_6);
+			config.CurrencysCol_7 = ini_config.get()->ReadFloat("ParamWidth", "CurrencysCol_7", config.CurrencysCol_7);
+
+			config.LinesNamesCol_0 = ini_config.get()->ReadFloat("ParamWidth", "LinesNamesCol_0", config.LinesNamesCol_0);
+			config.LinesNamesCol_0 = ini_config.get()->ReadFloat("ParamWidth", "LinesNamesCol_1", config.LinesNamesCol_1);
+			config.LinesNamesCol_0 = ini_config.get()->ReadFloat("ParamWidth", "LinesNamesCol_2", config.LinesNamesCol_2);
+
+		}
+		else
+		{
+			need_to_restart = true;
+
+			throw Exception("The files have been created, please restart the program.");
+		}
+	}
+
+    //-- сохранение параметров программы --//
+	void TEngine::SaveConfig()
+	{
+
+		//-- ЗАПИСЬ КОНФИГУРАЦИИ В ФАЙЛ --//
+
+		if( ini_config.get() )
+		{
+            //-- параметр размера главной формы --//
+			ini_config.get()->WriteInteger("Interface", "MainFormWidth", config.MainFormWidth);
+			ini_config.get()->WriteInteger("Interface", "MainFormHeight", config.MainFormHeight);
+
+			//-- параметр получения уведомлений --//
+			ini_config.get()->WriteBool("Interface", "NotificationsHint", config.NotificationsHint);
+
+			//-- параметр минимизации программы --//
+			ini_config.get()->WriteBool("Interface", "TrayMinimize", config.TrayMinimize);
+
+			//-- параметр темы --//
+			ini_config.get()->WriteBool("Interface", "Theme", config.Theme);
+
+			//-- параметр последнего обновления данных --//
+			ini_config.get()->WriteInteger("LastCollected", "DD", config.LastCollectedDD);
+
+			ini_config.get()->WriteInteger("LastCollected", "MM", config.LastCollectedMM);
+
+			ini_config.get()->WriteInteger("LastCollected", "YY", config.LastCollectedYY);
+
+			ini_config.get()->WriteInteger("LastCollected", "HH", config.LastCollectedHH);
+
+			ini_config.get()->WriteInteger("LastCollected", "NN", config.LastCollectedNN);
+
+			ini_config.get()->WriteInteger("LastCollected", "SS", config.LastCollectedSS);
+
+			ini_config.get()->WriteInteger("LastCollected", "LastTimeOnCollect", config.LastTimeOnCollect);
+
+			//-- параметр хоста сервера --//
+			ini_config.get()->WriteString("Server", "Host", config.HostServer);
+
+			//-- параметр порта сервера --//
+			ini_config.get()->WriteInteger("Server", "Port", config.PortServer);
+
+			//-- параметр логина --//
+			ini_config.get()->WriteString("Auth", "Login", config.LoginServer );
+
+			//-- параметр пароля --//
+			config.PasswordServer = XOR_Crypt(config.PasswordServer, "8hfwn8newf8nm298um8un23mfmuwen8fmm28fmu8n8m2fuimn283f8m8wmuf8");
+
+			ini_config.get()->WriteString("Auth", "Password", encoder64.get()->EncodeString( config.PasswordServer, IndyTextEncoding_UTF8() ));
+
+			//-- параметры выбраных сортировок --//
+			ini_config.get()->WriteInteger("ParamSort", "SortSources", config.SortSources);
+			ini_config.get()->WriteBool("ParamSort", "SortSourcesInd", config.SortSourcesInd);
+
+			ini_config.get()->WriteInteger("ParamSort", "SortCurrencys", config.SortCurrencys);
+			ini_config.get()->WriteBool("ParamSort", "SortCurrencysInd", config.SortCurrencysInd);
+
+			ini_config.get()->WriteInteger("ParamSort", "SortLines", config.SortLines);
+			ini_config.get()->WriteBool("ParamSort", "SortLinesInd", config.SortLinesInd);
+
+			ini_config.get()->WriteInteger("ParamSort", "SortCorrections", config.SortCorrections);
+			ini_config.get()->WriteBool("ParamSort", "SortCorrectionsInd", config.SortCorrectionsInd);
+
+			ini_config.get()->WriteInteger("ParamSort", "SortArbitrations", config.SortArbitrations);
+			ini_config.get()->WriteBool("ParamSort", "SortArbitrationsInd", config.SortArbitrationsInd);
+
+			//-- параметры коэффициентов ширины столбцов --//
+			ini_config.get()->WriteFloat("ParamWidth", "SourcesCol_0", config.SourcesCol_0);
+			ini_config.get()->WriteFloat("ParamWidth", "SourcesCol_1", config.SourcesCol_1);
+			ini_config.get()->WriteFloat("ParamWidth", "SourcesCol_2", config.SourcesCol_2);
+			ini_config.get()->WriteFloat("ParamWidth", "SourcesCol_3", config.SourcesCol_3);
+			ini_config.get()->WriteFloat("ParamWidth", "SourcesCol_4", config.SourcesCol_4);
+			ini_config.get()->WriteFloat("ParamWidth", "SourcesCol_5", config.SourcesCol_5);
+			ini_config.get()->WriteFloat("ParamWidth", "SourcesCol_6", config.SourcesCol_6);
+
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_0", config.CurrencysCol_0);
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_1", config.CurrencysCol_1);
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_2", config.CurrencysCol_2);
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_3", config.CurrencysCol_3);
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_4", config.CurrencysCol_4);
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_5", config.CurrencysCol_5);
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_6", config.CurrencysCol_6);
+			ini_config.get()->WriteFloat("ParamWidth", "CurrencysCol_7", config.CurrencysCol_7);
+
+			ini_config.get()->WriteFloat("ParamWidth", "LinesNamesCol_0", config.LinesNamesCol_0);
+			ini_config.get()->WriteFloat("ParamWidth", "LinesNamesCol_1", config.LinesNamesCol_1);
+			ini_config.get()->WriteFloat("ParamWidth", "LinesNamesCol_2", config.LinesNamesCol_2);
+		}
+	}
+
+    //-- шифровщик/дешифровщик текста --//
+	UnicodeString TEngine::XOR_Crypt(UnicodeString In, UnicodeString Pass) const
+	{
+		UnicodeString out;
+		for (int i=1; i != In.Length()+1; i ++)
+		{
+			out = out + (char)(In[i] ^ Pass[ i%Pass.Length()+1 ]);
+		}
+
+		return out;
+	}
+
+    //-- возврат конфигурации программы --//
+	SConfig* TEngine::Config()
+	{
+		return &config;
+	}
+
+    //-- функция конвертирования числовой строки с запятой в числовую строку с точкой --//
+	UnicodeString TEngine::FloatWithDots(const UnicodeString FloatNum) const
+	{
+		UnicodeString Num = FloatNum;
+
+		return StringReplace(Num, ",", ".", TReplaceFlags()<<rfReplaceAll<<rfIgnoreCase);
+	}
+
+};

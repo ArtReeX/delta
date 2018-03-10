@@ -1,0 +1,28 @@
+//-----------------------------------------------------------//
+//----------------- ИДЕНТИФИКАТОРЫ ДАННЫХ -------------------//
+//---------------------------(H)-----------------------------//
+
+#ifndef TIMECOLLECTH
+#define TIMECOLLECTH
+
+//-- значения начала и окончания сбора данных --//
+struct STimeCollect
+{
+	//-- время начала сбора данных --//
+	unsigned int StartCollectDD;
+	unsigned int StartCollectMM;
+	unsigned int StartCollectYY;
+	unsigned int StartCollectHH;
+	unsigned int StartCollectNN;
+	unsigned int StartCollectSS;
+
+	//-- время конца сбора данных --//
+	unsigned int EndCollectDD;
+	unsigned int EndCollectMM;
+	unsigned int EndCollectYY;
+	unsigned int EndCollectHH;
+	unsigned int EndCollectNN;
+	unsigned int EndCollectSS;
+};
+
+#endif

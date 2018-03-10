@@ -1,0 +1,289 @@
+﻿  //-----------------------------------------------------------//
+  //------------------------- StapLIB -------------------------//
+  //--------------------------(CPP)----------------------------//
+
+//-- подключение заголовочного файла --//
+#include "TStapLIB.h"
+
+namespace TStapLIBNS
+{
+
+    //-- стандартный конструктор --//
+	TStapLIB::TStapLIB()
+	:   tcp_client(new TIdTCPClient),
+		logs(new TStringList)
+	{
+        //-- задание параметров ожидания подключения к серверу --//
+		tcp_client.get()->ConnectTimeout = 1000;
+
+		//-- задание параметров чтения из сети --//
+		tcp_client.get()->ReadTimeout = 1500;
+	}
+
+    //-- стандартный деструктор --//
+	TStapLIB::~TStapLIB()
+	{
+        //-- проверка существования потока чтения от сервера --//
+		if(tcp_read_client_thread.get())
+		{
+			//-- завершаем поток чтения от сервера --//
+			tcp_read_client_thread.get()->Terminate();
+
+			//-- ждём завершения --//
+			tcp_read_client_thread.get()->WaitFor();
+		}
+
+		//-- завершение соединения --//
+		Disconnect();
+	}
+
+	//-- функция подключения к серверу --//
+	void TStapLIB::Connecting(const UnicodeString Host = "127.0.0.1", const unsigned int Port = 81)
+	{
+		if(!handlers.size())
+			throw Exception("Not have handlers.");
+
+		//-- запрет создания нового подключения при активном соединении --//
+		if(tcp_client.get()->Connected())
+			throw Exception("Already connected.");
+
+		//-- задание параметров ХОСТ/ПОРТ --//
+		tcp_client.get()->Host = Host;
+		tcp_client.get()->Port = Port;
+
+		try
+		{
+			//-- подключение --//
+			tcp_client.get()->Connect();
+		}
+		catch (...)
+		{
+			throw Exception("Unable to connect to server.");
+		}
+
+		//-- вызов потока чтения ответов от сервера --//
+		tcp_read_client_thread.reset(new TTCPReadSocketThread( tcp_client.get(), &handlers, name_search, logs.get() ));
+
+
+
+		//-- ЗАПИСЬ В ЛОГ ФАЙЛ --//
+
+		//-- очистка логов, если требуется --//
+		if(logs.get()->Count >= 5000)
+			logs.get()->Clear();
+
+		logs.get()->Add( "Connected: " + tcp_client.get()->Host + ":" +  tcp_client.get()->Port);
+		logs.get()->Add("----------");
+
+	}
+
+    //-- функция возврата состояния соединения --//
+	bool TStapLIB::ConnectState() const
+	{
+        //-- возврат состояния подключения --//
+		return tcp_client.get()->Connected();
+    }
+
+    //-- функция отключения от сервера --//
+	void TStapLIB::Disconnect()
+	{
+        //-- проверка существования потока чтения от сервера --//
+		if(tcp_read_client_thread.get())
+		{
+			//-- завершаем поток чтения от сервера --//
+			tcp_read_client_thread.get()->Terminate();
+
+			//-- ждём завершения --//
+			tcp_read_client_thread.get()->WaitFor();
+		}
+
+        try
+		{
+            //-- завершение соединения --//
+			tcp_client.get()->Disconnect();
+		}
+		catch (...)
+		{
+			throw Exception("The client is already disabled.");
+		}
+
+
+
+
+        //-- ЗАПИСЬ В ЛОГ ФАЙЛ --//
+
+		//-- очистка логов, если требуется --//
+		if(logs.get()->Count >= 5000)
+			logs.get()->Clear();
+
+		logs.get()->Add( "Disconnected: " + tcp_client.get()->Host + ":" +  tcp_client.get()->Port);
+		logs.get()->Add("----------");
+
+	}
+
+	//-- функция установки поискового ключа метода --//
+	void TStapLIB::SetSearchKey(const UnicodeString Key = "call")
+	{
+		//-- запрет изменений при активном соединении --//
+		if(tcp_client.get()->Connected())
+			throw Exception("Connected state.");
+
+		//-- изменение ключа поиска --//
+		name_search = Key;
+    }
+
+	//-- функция установки стандартного обработчика --//
+	void TStapLIB::SetDefaultHandler(FHandler Handler)
+	{
+		//-- если стандартный обработчик уже существует, удаляем его --//
+		MHandlers::iterator handlers_it = handlers.find( "DefaultHandlerStapLIB" );
+
+		if (handlers_it != handlers.end())
+			handlers.erase(handlers_it);
+
+		//-- добавление стандартного обработчика --//
+		handlers.insert( std::make_pair("DefaultHandlerStapLIB", Handler) );
+	}
+
+	//-- функция установки обработчика --//
+	void TStapLIB::SetHandler(const UnicodeString Name, FHandler Handler)
+	{
+		//-- если обработчик уже существует, удаляем его --//
+		MHandlers::iterator handlers_it = handlers.find( Name );
+
+		if (handlers_it != handlers.end())
+			handlers.erase(handlers_it);
+
+		//-- добавление обработчика --//
+		handlers.insert( std::make_pair(Name, Handler) );
+	}
+
+	//-- функция удаления всех обработчиков --//
+	void TStapLIB::DelHandler()
+	{
+		//-- УДАЛЕНИЕ ВСЕХ ОБРАБОТЧИКОВ --//
+		handlers.clear();
+	}
+
+	//-- функция удаления обработчика по имени --//
+	void TStapLIB::DelHandler(const UnicodeString Name)
+	{
+		//-- УДАЛЕНИЕ ОБРАБОТЧИКА --//
+
+		//-- поиск элемента --//
+		MHandlers::iterator handlers_it = handlers.find( Name );
+
+		//-- удаление элемента, если такой есть --//
+		if (handlers_it != handlers.end())
+			handlers.erase(handlers_it);
+		else
+			throw Exception("Handler not found.");
+	}
+
+	//-- функция удаления стандартного обработчика --//
+	void TStapLIB::DelDefaultHandler()
+	{
+		//-- УДАЛЕНИЕ СТАНДАРТНОГО ОБРАБОТЧИКА --//
+
+		//-- поиск элемента --//
+		MHandlers::iterator handlers_it = handlers.find( "DefaultHandlerStapLIB" );
+
+		//-- удаление элемента, если такой есть --//
+		if (handlers_it != handlers.end())
+			handlers.erase(handlers_it);
+	}
+
+
+	//-- функция отправки сообщения на сервер --//
+	void TStapLIB::Send(const UnicodeString Name, const UnicodeString CallBack)
+	{
+		//-- запрет отправки сообщения при отключенном состоянии --//
+		if(!tcp_client.get()->Connected())
+			throw Exception("Client no connection.");
+
+		//-- создание строки для отправки на сервер --//
+		UnicodeString mesage_to_server;
+		mesage_to_server = "{\"call\":\"" + Name + "\"," + "\"callback\":\"" + CallBack + "\"}";
+
+		//-- отправка сообщения на сервер --//
+		tcp_client.get()->Socket->WriteLn( mesage_to_server );
+
+
+
+
+		//-- ЗАПИСЬ В ЛОГ ФАЙЛ --//
+
+		//-- парсинг сообщения для сервера --//
+		std::shared_ptr< TJSONObject > json_object_log( dynamic_cast<TJSONObject*>(TJSONObject::ParseJSONValue( mesage_to_server )) );
+
+		//-- очистка логов, если требуется --//
+		if(logs.get()->Count >= 5000)
+			logs.get()->Clear();
+
+		if(json_object_log.get())
+		{
+			//-- запись в лог файл --//
+			logs.get()->Add( "Client: " + json_object_log.get()->ToJSON() );
+			logs.get()->Add("----------");
+		}
+		else
+		{
+			//-- запись ошибки исходящих данных --//
+			logs.get()->Add( "Client: Error JSON data." );
+			logs.get()->Add("----------");
+
+            return;
+		}
+	}
+
+	//-- функция отправки сообщения на сервер c параметром --//
+	void TStapLIB::Send(const UnicodeString Name, const UnicodeString Param , const UnicodeString CallBack)
+	{
+		//-- запрет отправки сообщения при отключенном состоянии --//
+		if(!tcp_client.get()->Connected())
+			throw Exception("Client no connection.");
+
+		 //-- создание строки для отправки на сервер --//
+		UnicodeString mesage_to_server;
+		mesage_to_server = "{\"call\":\"" + Name + "\"," + "\"param\":{" + Param + "},\"callback\":\"" + CallBack + "\"}";
+
+		//-- отправка сообщения на сервер --//
+		tcp_client.get()->Socket->WriteLn( mesage_to_server );
+
+
+
+
+		//-- ЗАПИСЬ В ЛОГ ФАЙЛ --//
+
+		//-- парсинг сообщения для сервера --//
+		std::shared_ptr< TJSONObject > json_object_log( dynamic_cast<TJSONObject*>(TJSONObject::ParseJSONValue( mesage_to_server )) );
+
+        //-- очистка логов, если требуется --//
+		if(logs.get()->Count >= 5000)
+			logs.get()->Clear();
+
+		if(json_object_log.get())
+		{
+			//-- запись в лог файл --//
+			logs.get()->Add( "Client: " + json_object_log.get()->ToJSON() );
+			logs.get()->Add("----------");
+		}
+		else
+		{
+			//-- запись ошибки исходящих данных --//
+			logs.get()->Add( "Client: Error JSON data." );
+			logs.get()->Add("----------");
+
+			return;
+		}
+	}
+
+    //-- функция возврата логов --//
+	UnicodeString TStapLIB::GetLogs()
+	{
+		return logs.get()->Text;
+    }
+
+};
+
+

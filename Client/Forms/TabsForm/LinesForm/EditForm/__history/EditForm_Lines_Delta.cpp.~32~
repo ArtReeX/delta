@@ -1,0 +1,400 @@
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "EditForm_Lines_Delta.h"
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+TEditFormLines *EditFormLines;
+//---------------------------------------------------------------------------
+__fastcall TEditFormLines::TEditFormLines(TComponent* Owner)
+	: TForm(Owner)
+{
+}
+
+
+//---------------------------------------------------------//
+//------------ ОБРАБОТЧИКИ СТАНДАРТНЫХ СОБЫТИЙ ------------//
+//---------------------------------------------------------//
+
+//-- ФУНКЦИЯ ПОКАЗА ФОРМЫ --//
+void __fastcall TEditFormLines::FormShow(TObject *Sender)
+{
+
+	//-- установка начального состояния выбора всех источников, валют и базовой валюты --//
+	AllSourcesCheck->Checked = false;
+	AllCurrencysCheck->Checked = false;
+	AllBasesCheck->Checked = false;
+
+	//-- поиск ID --//
+	MLine::iterator map_iterator = MainForm->engine->Data()->map_lines.find( MainForm->Lines_NamesStringGrid->Cells[0][MainForm->Lines_NamesStringGrid->Row].ToInt() );
+
+
+
+	//-- очистка поля с именем --//
+	NameEdit->Clear();
+
+	//-- изначальное заполнение поля с именем --//
+	NameEdit->Text = map_iterator->second.name;
+
+
+
+
+	//-- очистка поля с источниками --//
+	SourcesCheckList->Clear();
+
+	//-- изначальное заполнение поля активными источниками --//
+	for(int sources_count=0; sources_count != map_iterator->second.sources.size(); sources_count ++)
+	{
+		MSource::iterator map_iterator_source = MainForm->engine->Data()->map_sources.find( map_iterator->second.sources[sources_count] );
+
+		if(map_iterator_source != MainForm->engine->Data()->map_sources.end())
+			SourcesCheckList->Items->Add( map_iterator_source->second.name );
+	}
+
+	//-- отмечаем активные источники --//
+	SourcesCheckList->CheckAll(cbChecked);
+
+	//-- заполнение поля неактивными источниками --//
+	MSource::iterator map_iterator_source;
+
+	for(map_iterator_source = MainForm->engine->Data()->map_sources.begin(); map_iterator_source != MainForm->engine->Data()->map_sources.end(); map_iterator_source ++)
+	{
+		int sources_count=0;
+		for(; sources_count != SourcesCheckList->Items->Count; sources_count++)
+		{
+			if(map_iterator_source->second.name == SourcesCheckList->Items->Strings[sources_count])
+			break;
+		}
+		if(sources_count == SourcesCheckList->Items->Count)
+			SourcesCheckList->Items->Add( map_iterator_source->second.name );
+	}
+
+
+
+
+
+	//-- очистка поля с валютами --//
+	CurrencysCheckList->Clear();
+
+	//-- изначальное заполнение поля активными валютами --//
+	for(int currencys_count=0; currencys_count != map_iterator->second.сurrencys.size(); currencys_count ++)
+	{
+		MCurrency::iterator map_iterator_currency = MainForm->engine->Data()->map_currencys.find( map_iterator->second.сurrencys[currencys_count] );
+
+		if(map_iterator_currency != MainForm->engine->Data()->map_currencys.end())
+			CurrencysCheckList->Items->Add( map_iterator_currency->second.name );
+	}
+
+    //-- отмечаем активные валюты --//
+	CurrencysCheckList->CheckAll(cbChecked);
+
+	//-- заполнение поля неактивными валютами --//
+	MCurrency::iterator map_iterator_currency;
+
+	for(map_iterator_currency = MainForm->engine->Data()->map_currencys.begin(); map_iterator_currency != MainForm->engine->Data()->map_currencys.end(); map_iterator_currency ++)
+	{
+		int currencys_count=0;
+		for(; currencys_count != CurrencysCheckList->Items->Count; currencys_count++)
+		{
+			if(map_iterator_currency->second.name == CurrencysCheckList->Items->Strings[currencys_count])
+			break;
+		}
+		if(currencys_count == CurrencysCheckList->Items->Count)
+			CurrencysCheckList->Items->Add( map_iterator_currency->second.name );
+	}
+
+
+
+
+
+	//-- очистка поля с базовыми валютами --//
+	BasesCheckList->Clear();
+
+	//-- изначальное заполнение поля нективными базовыми валютами --//
+    for(int currencys_count=0; currencys_count != CurrencysCheckList->Items->Count; currencys_count ++)
+	{
+		if(CurrencysCheckList->Checked[currencys_count])
+			BasesCheckList->Items->Add( CurrencysCheckList->Items->Strings[currencys_count] );
+	}
+
+	//-- отмечаем активные базовые валюты --//
+	BasesCheckList->CheckAll(cbChecked);
+
+	//-- выбор активных базовых валют --//
+	for(std::vector< int >::iterator iterator_bases =  map_iterator->second.bases.begin(); iterator_bases != map_iterator->second.bases.end(); iterator_bases ++)
+	{
+		for(int i=0; i != BasesCheckList->GetCount(); i++)
+		{
+			MCurrency::iterator iterator_currency = MainForm->engine->Data()->map_currencys.find( *iterator_bases );
+			if( iterator_currency != MainForm->engine->Data()->map_currencys.end() )
+			{
+				if(BasesCheckList->Items->Strings[i] == iterator_currency->second.name)
+				BasesCheckList->Checked[i] = true;
+			}
+        }
+	}
+
+
+
+
+	//-- состояние --//
+	EnabledCheck->Checked = map_iterator->second.enabled.ToInt();
+
+	//-- заметки --//
+	NotesMemo->Clear();
+	NotesMemo->Text = map_iterator->second.notes;
+}
+
+
+
+//---------------------------------------------------------//
+//------------- ОБРАБОТЧИКИ СОБЫТИЙ ЭЛЕМЕНТОВ -------------//
+//---------------------------------------------------------//
+
+//-- ФУНКЦИЯ ОБРАБОТКИ ПО НАЖАТИЮ НА КНОПКУ "Save" --//
+void __fastcall TEditFormLines::SaveButton_OneClick(TObject *Sender)
+{
+
+	if(NameEdit->Text.IsEmpty())
+	{
+		ShowMessage("Required fields are not filled.");
+		return;
+    }
+
+	//-- поиск ID --//
+	MLine::iterator map_iterator = MainForm->engine->Data()->map_lines.find( MainForm->Lines_NamesStringGrid->Cells[0][MainForm->Lines_NamesStringGrid->Row].ToInt() );
+
+
+	//-- ФОРМИРОВАНИЕ СТРОКИ ДОБАВЛЕНИЯ С СТАНДАРТНЫМИ ПАРАМЕТРАМИ --//
+
+
+
+    //-- ID --//
+	UnicodeString param = "\"id\":" + UnicodeString( map_iterator->first );
+
+
+	//-- имя --//
+	//-- ************************************ --//
+	if(!NameEdit->Text.IsEmpty() && NameEdit->Text != map_iterator->second.name)
+	{
+		param = param + ",\"name\":\"" + MainForm->Encoder->EncodeString( NameEdit->Text, IndyTextEncoding_UTF8() ) + "\"";
+	}
+	//-- ************************************ --//
+
+
+
+    //-- проверка на выбор не менее одного источника --//
+	int sources_count=0;
+	for(; sources_count != SourcesCheckList->Items->Count; sources_count++)
+	{
+		if(SourcesCheckList->Checked[sources_count])
+			break;
+	}
+	if(sources_count == SourcesCheckList->Items->Count)
+	{
+
+		//-- источники --//
+		param = param + ",\"sources\":\[";
+		//-- ************************************ --//
+		for(int j=0; j != SourcesCheckList->GetCount(); j ++)
+		{
+			if(SourcesCheckList->Checked[j])
+			{
+				MSource::iterator iterator_source;
+
+				//-- поиск ID источника по имени --//
+				for(iterator_source = MainForm->engine->Data()->map_sources.begin(); iterator_source != MainForm->engine->Data()->map_sources.end(); iterator_source ++)
+				{
+					if(iterator_source->second.name == SourcesCheckList->Items->Strings[j])
+						break;
+				}
+
+				param = param + "\"" + iterator_source->first + "\",";
+			}
+		}
+		//-- удаление лишней запятой --//
+		param.Delete(param.Length(),1);
+		param = param + "]";
+		//-- ************************************ --//
+	}
+
+
+
+    //-- проверка на выбор не менее одной валюты --//
+	int currencys_count=0;
+	for(; currencys_count != CurrencysCheckList->Items->Count; currencys_count++)
+	{
+		if(CurrencysCheckList->Checked[currencys_count])
+			break;
+	}
+	if(currencys_count == CurrencysCheckList->Items->Count)
+	{
+
+		//-- валюты --//
+		//-- ************************************ --//
+		param = param + ",\"currencys\":\[";
+
+		for(int j=0; j != CurrencysCheckList->GetCount(); j ++)
+		{
+			if(CurrencysCheckList->Checked[j])
+			{
+				MCurrency::iterator iterator_currency;
+
+				//-- поиск ID валюты по имени --//
+				for(iterator_currency = MainForm->engine->Data()->map_currencys.begin(); iterator_currency != MainForm->engine->Data()->map_currencys.end(); iterator_currency ++)
+				{
+					if(iterator_currency->second.name == CurrencysCheckList->Items->Strings[j])
+						break;
+				}
+
+				param = param + "\"" + iterator_currency->first + "\",";
+			}
+		}
+		//-- удаление лишней запятой --//
+		param.Delete(param.Length(),1);
+
+		param = param + "]";
+		//-- ************************************ --//
+	}
+
+
+
+	//-- статус --//
+    //-- ************************************ --//
+	if(EnabledCheck->Checked && EnabledCheck->Checked != map_iterator->second.enabled.ToInt())
+		param = param + ",\"enabled\":1";
+	else
+		param = param + ",\"enabled\":0";
+	//-- ************************************ --//
+
+
+	//-- заметки --//
+    //-- ************************************ --//
+	if(!NotesMemo->Text.IsEmpty() && NotesMemo->Text != map_iterator->second.notes)
+	{
+		param = param + ",\"notes\":\"" + MainForm->Encoder->EncodeString( NotesMemo->Text, IndyTextEncoding_UTF8() ) + "\"";
+	}
+	//-- ************************************ --//
+
+
+
+	//-- отправка запроса добавления на сервер --//
+	MainForm->engine->Send("editLine", param, "CheckEditLine");
+
+	//-- закрытие формы добавления --//
+	Close();
+}
+
+
+//-- ФУНКЦИЯ ВЫДЕЛЕНИЯ ВСЕХ ИСТОЧНИКОВ --//
+void __fastcall TEditFormLines::AllSourcesCheck_OneClick(TObject *Sender)
+{
+
+	if(AllSourcesCheck->State == true)
+	{
+		//-- если все источники не выделены --//
+
+		for(int sources_count=0; sources_count != SourcesCheckList->Items->Count; sources_count ++)
+		{
+			SourcesCheckList->Checked[sources_count] = true;
+		}
+	}
+	else
+	{
+		//-- если все источники выделены --//
+
+		for(int sources_count=0; sources_count != SourcesCheckList->Items->Count; sources_count ++)
+		{
+			SourcesCheckList->Checked[sources_count] = false;
+		}
+    }
+}
+
+
+
+//-- ФУНКЦИЯ ВЫДЕЛЕНИЯ ВСЕХ ВАЛЮТ --//
+void __fastcall TEditFormLines::AllCurrencysCheck_OneClick(TObject *Sender)
+{
+	if(AllCurrencysCheck->State == true)
+	{
+		//-- если все источники не выделены --//
+
+		for(int currencys_count=0; currencys_count != CurrencysCheckList->Items->Count; currencys_count ++)
+		{
+			CurrencysCheckList->Checked[currencys_count] = true;
+		}
+	}
+	else
+	{
+		//-- если все источники выделены --//
+
+		for(int currencys_count=0; currencys_count != CurrencysCheckList->Items->Count; currencys_count ++)
+		{
+			CurrencysCheckList->Checked[currencys_count] = false;
+		}
+	}
+}
+
+
+
+//-- ФУНКЦИЯ ВЫДЕЛЕНИЯ ВСЕХ БАЗОВЫХ ВАЛЮТ --//
+void __fastcall TEditFormLines::AllBasesCheck_OneClick(TObject *Sender)
+{
+	if(AllBasesCheck->State == true)
+	{
+		//-- если все валюты не выделены --//
+
+		for(int bases_count=0; bases_count != BasesCheckList->Items->Count; bases_count ++)
+		{
+			BasesCheckList->Checked[bases_count] = true;
+		}
+	}
+	else
+	{
+		//-- если все валюты выделены --//
+
+		for(int bases_count=0; bases_count != BasesCheckList->Items->Count; bases_count ++)
+		{
+			BasesCheckList->Checked[bases_count] = false;
+		}
+	}
+}
+
+
+//-- ФУНКЦИЯ ДОБАВЛЕНИЯ ВЫБРАНЫХ ВАЛЮТ ВО ВКЛАДКУ БАЗОВЫХ ВАЛЮТ --//
+void __fastcall TEditFormLines::CurrencysCheckListClickCheck(TObject *Sender)
+{
+	//-- запоминание помеченых элементов из списка базовых валют --//
+	std::vector< UnicodeString > activy_bases;
+
+	for(int bases_count=0; bases_count != BasesCheckList->Items->Count; bases_count ++)
+	{
+		if(BasesCheckList->Checked[bases_count])
+			activy_bases.push_back( BasesCheckList->Items->Strings[bases_count] );
+	}
+
+	//-- очистка базовых валют --//
+	BasesCheckList->Clear();
+
+	//-- добавление только выбранных валют из вкладки валют --//
+	for(int currencys_count=0; currencys_count != CurrencysCheckList->Items->Count; currencys_count ++)
+	{
+		if(CurrencysCheckList->Checked[currencys_count])
+			BasesCheckList->Items->Add( CurrencysCheckList->Items->Strings[currencys_count] );
+	}
+
+	//-- выбор отмеченных до этого активных базовых валют --//
+	for(std::vector< UnicodeString >::iterator iterator_base = activy_bases.begin(); iterator_base != activy_bases.end(); iterator_base ++)
+	{
+		for(int i=0; i != BasesCheckList->Items->Count; i ++)
+		{
+			if(BasesCheckList->Items->Strings[i] == *iterator_base)
+				BasesCheckList->Checked[i] = true;
+		}
+	}
+}
+
+

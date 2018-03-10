@@ -1,0 +1,166 @@
+//-----------------------------------------------------------//
+//----------------- ИДЕНТИФИКАТОРЫ ДАННЫХ -------------------//
+//---------------------------(H)-----------------------------//
+
+#ifndef MAPSIDH
+#define MAPSIDH
+
+//-- подключение Map'ов --//
+#include <map>
+
+//-- подключение Vector'ов --//
+#include <vector>
+
+//-- подключение UnicodeString --//
+#include <vcl.h>
+
+//-- структура для источников --//
+struct SSource
+{
+	UnicodeString name;
+
+	UnicodeString url;
+
+	UnicodeString dataurl;
+
+	UnicodeString getter;
+
+	UnicodeString enabled;
+
+    UnicodeString notes;
+};
+
+//-- структура для валют --//
+struct SCurrency
+{
+	UnicodeString name;
+
+	UnicodeString shortn;
+
+	UnicodeString fee;
+
+	UnicodeString minSum;
+
+	UnicodeString base;
+
+	UnicodeString enabled;
+
+	UnicodeString notes;
+};
+
+//-- структура для линий --//
+struct SLine
+{
+	UnicodeString name;
+
+	std::vector<int> sources;
+
+	std::vector<int> сurrencys;
+
+	std::vector<int> bases;
+
+	UnicodeString enabled;
+
+	UnicodeString notes;
+};
+
+//-- структура для параметров --//
+struct SParam
+{
+	UnicodeString factor;
+
+	UnicodeString maxChainLen;
+};
+
+//-- структура для коррекции --//
+struct SCorrection
+{
+	UnicodeString sourceId;
+
+	UnicodeString currOut;
+
+	UnicodeString currIn;
+
+	UnicodeString fee;
+
+	UnicodeString enabled;
+
+	UnicodeString notes;
+};
+
+
+//-- структура для арбитража --//
+struct SOperation
+{
+
+};
+
+struct SArbitration
+{
+	UnicodeString factor;
+
+    UnicodeString line;
+
+	UnicodeString currOut;
+
+	UnicodeString currIn;
+
+	UnicodeString idSource;
+
+	UnicodeString rate;
+
+	UnicodeString realRate;
+
+	UnicodeString amount;
+
+    UnicodeString relevance;
+};
+
+
+
+//-- объявление типа идентификаторов для многосодержащего типа Source --//
+typedef std::map< unsigned int, SSource > MSource;
+
+//-- объявление типа идентификаторов для многосодержащего типа Currency --//
+typedef std::map< unsigned int, SCurrency > MCurrency;
+
+//-- объявление типа идентификаторов для многосодержащего типа Line --//
+typedef std::map< unsigned int, SLine > MLine;
+
+//-- объявление типа идентификаторов для многосодержащего типа Correction --//
+typedef std::map< unsigned int, SCorrection > MCorrection;
+
+//-- объявление типа идентификаторов для многосодержащего типа Arbitration --//
+typedef std::map< unsigned int, SArbitration > MArbitration;
+
+//-- объявление типа идентификаторов для многосодержащего типа Correction --//
+typedef std::map< unsigned int, UnicodeString > MCollection;
+
+
+
+//-- совокупная структура данных --//
+struct SData
+{
+	//-- создание идентификаторов источников --//
+	MSource map_sources;
+
+	//-- создание идентификаторов валют --//
+	MCurrency map_currencys;
+
+	//-- создание идентификаторов линий --//
+	MLine map_lines;
+
+	//-- создание идентификаторов коррекций --//
+	MCorrection map_corrections;
+
+    //-- создание идентификаторов арбитража --//
+	MArbitration map_arbitrations;
+
+	//-- создание параметров пользователя --//
+	SParam params;
+
+    MCollection map_collections;
+};
+
+
+#endif

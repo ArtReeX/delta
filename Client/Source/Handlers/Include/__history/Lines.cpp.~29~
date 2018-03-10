@@ -1,0 +1,357 @@
+//-- ******************************************* --//
+//-- ****************** Lines ****************** --//
+//-- ******************************************* --//
+
+#include <vcl.h>
+
+//-- подключение заголовочного файла --//
+#include "Lines.h"
+
+
+
+namespace HandlersNS
+{
+
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ѕќЋ”„≈Ќ»я Ћ»Ќ»… --//
+	void getLines(TJSONObject *json_object_parse)
+	{
+        //-- обьекты дл€ работы с JSON --//
+		TJSONObject *json_object;
+		TJSONArray 	*json_array;
+
+		//-- получение массива с лини€ми --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+
+			if( json_object->Get("lines") )
+			{
+				json_array =  dynamic_cast<TJSONArray*>( json_object->Get("lines")->JsonValue );
+
+				//-- очистка идентификаторов --//
+				MainForm->engine->Data()->map_lines.clear();
+
+				//-- очистка таблиц --//
+				MainForm->ClearStringGrid( MainForm->Lines_NamesStringGrid );
+				MainForm->ClearStringGrid( MainForm->Lines_CurrencysStringGrid );
+				MainForm->ClearStringGrid( MainForm->Lines_SourcesStringGrid );
+
+
+				//-- парсинг массива с лини€ми --//
+				for(int i=0; i != json_array->Size(); i++)
+				{
+					json_object = dynamic_cast<TJSONObject*>( json_array->Get(i) );
+
+					SLine lines;
+
+					//-- добавление об€зательных значений в таблицу --//
+					lines.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+
+					if( json_object->Get("sources") )
+					{
+						TJSONArray *json_array_sources =  dynamic_cast<TJSONArray*>( json_object->Get("sources")->JsonValue );
+
+						for(int k=0; k != json_array_sources->Size(); k++)
+						{
+							lines.sources.push_back( json_array_sources->Get(k)->Value().ToInt() );
+                        }
+					}
+
+					if( json_object->Get("currencys") )
+					{
+						TJSONArray *json_array_currencys =  dynamic_cast<TJSONArray*>( json_object->Get("currencys")->JsonValue );
+
+						for(int k=0; k != json_array_currencys->Size(); k++)
+						{
+							lines.сurrencys.push_back( json_array_currencys->Get(k)->Value().ToInt() );
+                        }
+					}
+
+
+					if( json_object->Get("base") )
+					{
+						TJSONArray *json_array_bases =  dynamic_cast<TJSONArray*>( json_object->Get("base")->JsonValue );
+
+						for(int k=0; k != json_array_bases->Size(); k++)
+						{
+							lines.bases.push_back( json_array_bases->Get(k)->Value().ToInt() );
+                        }
+					}
+
+
+					if( json_object->GetValue("enabled") )
+						lines.enabled = json_object->GetValue("enabled")->Value();
+
+
+
+					//-- добавление необ€зательных значений в таблицу --//
+					if( json_object->GetValue("notes") )
+						lines.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+					//-- запись идентификатора --//
+					MainForm->engine->Data()->map_lines.insert( std::make_pair( json_object->GetValue("id")->Value().ToInt(), lines ));
+				}
+
+				//-- сортировка по заданому типу --//
+				MainForm->engine->SortLines(MainForm->engine->Config()->SortLines);
+
+				//-- обновление таблицы --//
+				MainForm->UpdateLines(MainForm->Lines_NamesStringGrid->Row,MainForm->Lines_SourcesStringGrid->Row, MainForm->Lines_CurrencysStringGrid->Row, MainForm->Lines_BasesStringGrid->Row, true);
+			}
+		}
+	}
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј ƒќЅј¬Ћ≈Ќ»я Ћ»Ќ»» --//
+	void CheckAddLine(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Adding completed successfully.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Line with the same name already exists.");
+			}
+		}
+	}
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј »«ћ≈Ќ≈Ќ»я Ћ»Ќ»» --//
+	void CheckEditLine(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Change is successful.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Wrong ID.");
+			}
+		}
+	}
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  –≈«”Ћ№“ј“ј ”ƒјЋ≈Ќ»я Ћ»Ќ»» --//
+	void CheckDeleteLine(TJSONObject *json_object_parse)
+	{
+
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		//-- получение результата изменени€ источника --//
+		json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+		//-- если изменение прошло успешно --//
+		if(json_object->GetValue("result")->Value().ToInt() == 0)
+		{
+			//ShowMessage("Removal completed successfully.");
+		}
+		else
+		{
+			if(json_object->GetValue("result")->Value().ToInt() == 1)
+			{
+				ShowMessage("Wrong value of the ID field.");
+			}
+		}
+	}
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  »«ћ≈Ќ≈Ќ»я Ћ»Ќ»» --//
+	void editLine(TJSONObject *json_object_parse)
+	{
+        //-- обьекты дл€ работы с JSON --//
+		TJSONObject *json_object;
+		TJSONArray 	*json_array;
+
+		//-- изменение линии --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+
+			//-- поиск измен€емого элемента по ID --//
+			MLine::iterator iterator_line = MainForm->engine->Data()->map_lines.find( json_object->GetValue("id")->Value().ToInt() );
+
+			//-- изменение значений --//
+
+			if( json_object->Get("name") )
+				iterator_line->second.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+
+			if( json_object->Get("sources") )
+			{
+				TJSONArray *json_array_sources =  dynamic_cast<TJSONArray*>( json_object->Get("sources")->JsonValue );
+
+				//-- очистка старых идентификаторов источников --//
+				iterator_line->second.sources.clear();
+
+				for(int k=0; k != json_array_sources->Size(); k++)
+				{
+					iterator_line->second.sources.push_back( json_array_sources->Get(k)->Value().ToInt() );
+				}
+			}
+
+			if( json_object->Get("currencys") )
+			{
+				TJSONArray *json_array_currencys =  dynamic_cast<TJSONArray*>( json_object->Get("currencys")->JsonValue );
+
+				//-- очистка старых идентификаторов валют --//
+				iterator_line->second.сurrencys.clear();
+
+				for(int k=0; k != json_array_currencys->Size(); k++)
+				{
+					iterator_line->second.сurrencys.push_back( json_array_currencys->Get(k)->Value().ToInt() );
+				}
+			}
+
+
+			if( json_object->Get("base") )
+			{
+				TJSONArray *json_array_bases =  dynamic_cast<TJSONArray*>( json_object->Get("base")->JsonValue );
+
+				//-- очистка старых идентификаторов валют --//
+				iterator_line->second.bases.clear();
+
+				for(int k=0; k != json_array_bases->Size(); k++)
+				{
+					iterator_line->second.bases.push_back( json_array_bases->Get(k)->Value().ToInt() );
+				}
+			}
+
+
+			if( json_object->Get("enabled") )
+				iterator_line->second.enabled = json_object->GetValue("enabled")->Value();
+
+
+			if( json_object->Get("notes") )
+				iterator_line->second.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+
+			//-- сортировка по заданому типу --//
+			MainForm->engine->SortLines(MainForm->engine->Config()->SortLines);
+
+			//-- обновление таблицы --//
+			MainForm->UpdateLines(MainForm->Lines_NamesStringGrid->Row, MainForm->Lines_SourcesStringGrid->Row, MainForm->Lines_CurrencysStringGrid->Row, MainForm->Lines_BasesStringGrid->Row, true);
+
+		}
+	}
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ƒќЅј¬Ћ≈Ќ»я Ћ»Ќ»» --//
+	void addLine(TJSONObject *json_object_parse)
+	{
+		//-- обьекты дл€ работы с JSON --//
+		TJSONObject *json_object;
+		TJSONArray 	*json_array;
+
+		//-- добавление линии --//
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+
+			SLine lines;
+
+			//-- добавление об€зательных значений в таблицу --//
+			lines.name = MainForm->Decoder->DecodeString( json_object->GetValue("name")->Value(), IndyTextEncoding_UTF8() );
+
+
+			if( json_object->Get("sources") )
+			{
+				TJSONArray *json_array_sources =  dynamic_cast<TJSONArray*>( json_object->Get("sources")->JsonValue );
+
+				for(int k=0; k != json_array_sources->Size(); k++)
+				{
+					lines.sources.push_back( json_array_sources->Get(k)->Value().ToInt() );
+				}
+			}
+
+			if( json_object->Get("currencys") )
+			{
+				TJSONArray *json_array_currencys =  dynamic_cast<TJSONArray*>( json_object->Get("currencys")->JsonValue );
+
+				for(int k=0; k != json_array_currencys->Size(); k++)
+				{
+					lines.сurrencys.push_back( json_array_currencys->Get(k)->Value().ToInt() );
+				}
+			}
+
+
+			if( json_object->Get("base") )
+			{
+				TJSONArray *json_array_bases =  dynamic_cast<TJSONArray*>( json_object->Get("base")->JsonValue );
+
+				for(int k=0; k != json_array_bases->Size(); k++)
+				{
+					lines.bases.push_back( json_array_bases->Get(k)->Value().ToInt() );
+				}
+			}
+
+
+			//-- добавление необ€зательных значений в таблицу --//
+			if( json_object->GetValue("enabled") )
+				lines.enabled = json_object->GetValue("enabled")->Value();
+
+
+			if( json_object->GetValue("notes") )
+				lines.notes = MainForm->Decoder->DecodeString( json_object->GetValue("notes")->Value(), IndyTextEncoding_UTF8() );
+
+
+
+			//-- запись идентификатора --//
+			MainForm->engine->Data()->map_lines.insert( std::make_pair( json_object->GetValue("id")->Value().ToInt(), lines ));
+
+            //-- сортировка по заданому типу --//
+			MainForm->engine->SortLines(MainForm->engine->Config()->SortLines);
+
+			//-- обновление таблицы --//
+			MainForm->UpdateLines(MainForm->Lines_NamesStringGrid->Row, MainForm->Lines_SourcesStringGrid->Row, MainForm->Lines_CurrencysStringGrid->Row, MainForm->Lines_BasesStringGrid->Row, true);
+
+		}
+	}
+
+	//-- ‘”Ќ ÷»я-ќЅ–јЅќ“„»  ”ƒјЋ≈Ќ»я Ћ»Ќ»» --//
+	void deleteLine(TJSONObject *json_object_parse)
+	{
+		//-- обьект дл€ работы с JSON --//
+		TJSONObject *json_object;
+
+		if(json_object_parse->Get("param"))
+		{
+			json_object = dynamic_cast<TJSONObject*>( json_object_parse->Get("param")->JsonValue );
+
+			//-- удаление линии --//
+			MainForm->engine->Data()->map_lines.erase( MainForm->engine->Data()->map_lines.find(json_object->GetValue("id")->Value().ToInt()) );
+
+            //-- сортировка по заданому типу --//
+			MainForm->engine->SortLines(MainForm->engine->Config()->SortLines);
+
+			//-- обновление таблицы --//
+			MainForm->UpdateLines(MainForm->Lines_NamesStringGrid->Row - 1, MainForm->Lines_SourcesStringGrid->Row, MainForm->Lines_CurrencysStringGrid->Row, MainForm->Lines_BasesStringGrid->Row, true);
+		}
+	}
+
+}
+
+

@@ -1,0 +1,14 @@
+//-----------------------------------------------------------//
+//------------- тюикш дкъ ондйкчвемхъ й опнщйрс -------------//
+//---------------------------(H)-----------------------------//
+
+#ifndef INCLUDEH
+#define INCLUDEH
+
+#include "TEngine.h"
+#include "Handlers.h"
+#include "TimeCollect.h"
+#include "NotificationThread.h"
+
+
+#endif

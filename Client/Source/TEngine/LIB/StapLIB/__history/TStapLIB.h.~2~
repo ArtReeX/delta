@@ -1,0 +1,107 @@
+//-----------------------------------------------------------//
+//------------------------- StapLIB -------------------------//
+//---------------------------(H)-----------------------------//
+
+#ifndef TStapLIBH
+#define TStapLIBH
+
+//-- подключение Indy TCP Client --//
+#include <IdBaseComponent.hpp>
+#include <IdComponent.hpp>
+#include <IdBaseComponent.hpp>
+#include <IdComponent.hpp>
+#include <IdTCPClient.hpp>
+#include <IdTCPConnection.hpp>
+
+//-- подключение интеллектуальных указателей --//
+#include <memory>
+
+//-- подключение MAP --//
+#include <map>
+
+//-- подключение TCPSocketThread --//
+#include "TTCPReadSocketThread.h"
+
+//-- подключение JSON --//
+#include <System.JSON.hpp>
+
+//-- подключение главной формы --//
+#include "MainForm_Delta.h"
+
+
+typedef void (*FHandler)(TJSONObject*);
+typedef std::map< UnicodeString, FHandler > MHandlers;
+
+namespace TStapLIBNS
+{
+
+	class TStapLIB
+	{
+
+	private:
+
+		//-- map обработчиков функций --//
+		MHandlers handlers;
+
+		//-- имя ключа для поиска метода от сервера --//
+		UnicodeString name_search;
+
+		//-- файл логов--//
+		std::shared_ptr< TStringList > logs;
+
+		//-- создание TCPClient-а --//
+		std::shared_ptr< TIdTCPClient > tcp_client;
+
+		//-- создание потока обработки ответов от сервера --//
+		std::shared_ptr < TTCPReadSocketThread > tcp_read_client_thread;
+
+
+	public:
+
+		//-- стандартный конструктор --//
+		TStapLIB();
+
+		//-- стандартный деструктор --//
+		~TStapLIB();
+
+		//-- функция подключения к серверу --//
+		void Connecting(const UnicodeString Host,const unsigned int Port );
+
+		//-- функция возврата состояния соединения --//
+		bool ConnectState() const;
+
+		//-- функция отключения от сервера --//
+		void Disconnect();
+
+		//-- функция установки поискового ключа метода --//
+		void SetSearchKey(const UnicodeString Key);
+
+		//-- функция установки обработчика --//
+		void SetHandler(const UnicodeString Name, FHandler Handler);
+
+		//-- функция установки стандартного обработчика --//
+		void SetDefaultHandler(FHandler Handler);
+
+		//-- функция удаления всех обработчиков --//
+		void DelHandler();
+
+		//-- функция удаления обработчика по имени --//
+		void DelHandler(const UnicodeString Name);
+
+		//-- функция удаления стандартного обработчика --//
+		void DelDefaultHandler();
+
+		//-- функция отправки сообщения на сервер --//
+		void Send(const UnicodeString Name, const UnicodeString CallBack);
+
+		//-- функция отправки сообщения на сервер c параметром --//
+		void Send(const UnicodeString Name, const UnicodeString Param , const UnicodeString CallBack);
+
+		//-- функция возврата логов --//
+		UnicodeString GetLogs();
+
+	};
+
+};
+
+#endif
